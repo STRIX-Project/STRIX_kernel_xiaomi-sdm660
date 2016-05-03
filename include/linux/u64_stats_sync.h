@@ -103,7 +103,7 @@ static inline void u64_stats_update_end_raw(struct u64_stats_sync *syncp)
 #endif
 }
 
-static inline unsigned int __u64_stats_fetch_begin(const struct u64_stats_sync *syncp)
+static inline unsigned int u64_stats_fetch_begin(const struct u64_stats_sync *syncp)
 {
 #if BITS_PER_LONG==32 && defined(CONFIG_SMP)
 	return read_seqcount_begin(&syncp->seq);
