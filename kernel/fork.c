@@ -754,7 +754,6 @@ int mmput(struct mm_struct *mm)
 	}
 	return mm_freed;
 }
-EXPORT_SYMBOL_GPL(mmput);
 
 static void mmput_async_fn(struct work_struct *work)
 {
