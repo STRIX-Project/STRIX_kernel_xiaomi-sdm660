@@ -43,7 +43,7 @@ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o random32.o \
 	 gcd.o lcm.o list_sort.o uuid.o flex_array.o iov_iter.o clz_ctz.o \
 	 bsearch.o find_bit.o llist.o memweight.o kfifo.o \
 	 percpu-refcount.o percpu_ida.o rhashtable.o reciprocal_div.o \
-	 once.o hash.o
+	 once.o hash.o refcount.o
 
 obj-$(CONFIG_DEBUG_KERNEL) += debug_locks.o
 
