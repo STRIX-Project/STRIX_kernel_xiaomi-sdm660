@@ -179,8 +179,8 @@ static unsigned int get_next_freq(struct pwrgov_cpu *sg_cpu, unsigned long util,
 	struct pwrgov_policy *sg_policy = sg_cpu->sg_policy;
 	struct cpufreq_policy *policy = sg_policy->policy;
 	unsigned int freq = arch_scale_freq_invariant() ?
-				policy->cpuinfo.max_freq : policy->cur;
-				
+				policy->max : policy->cur;
+	
 	freq = freq * util / max;
 
 	if (freq == sg_cpu->cached_raw_freq && sg_policy->next_freq != UINT_MAX)
