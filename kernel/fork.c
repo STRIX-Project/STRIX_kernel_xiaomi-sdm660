@@ -169,7 +169,6 @@ static unsigned long *alloc_thread_stack_node(struct task_struct *tsk,
 {
 	struct page *page = alloc_kmem_pages_node(node, THREADINFO_GFP,
 						  THREAD_SIZE_ORDER);
-
 	return page ? page_address(page) : NULL;
 }
 
