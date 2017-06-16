@@ -466,6 +466,7 @@
 		*(.text.hot .text.hot.*)				\
 		*(.TEXT_MAIN .text.fixup)				\
 		*(.text.unlikely .text.unlikely.*)			\
+		*(.text..ftrace)					\
 		*(.text.unknown .text.unknown.*)			\
 		*(.ref.text)						\
 	MEM_KEEP(init.text*)						\
