@@ -6827,6 +6827,8 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 	int target_cpu = -1;
 	int cpu, i;
 
+	*backup_cpu = -1;
+
 	schedstat_inc(p, se.statistics.nr_wakeups_fbt_attempts);
 	schedstat_inc(this_rq(), eas_stats.fbt_attempts);
 
@@ -7139,6 +7141,10 @@ static inline int find_best_target(struct task_struct *p, int *backup_cpu,
 		target_cpu = prefer_idle
 			? best_active_cpu
 			: best_idle_cpu;
+	else
+		*backup_cpu = prefer_idle
+		? best_active_cpu
+		: best_idle_cpu;
 
 	trace_sched_find_best_target(p, prefer_idle, min_util, cpu,
 				     best_idle_cpu, best_active_cpu,
@@ -7246,10 +7252,7 @@ static int select_energy_cpu_brute(struct task_struct *p, int prev_cpu, int sync
 			/* No energy saving for target_cpu, try backup */
 			target_cpu = tmp_backup;
 			eenv.dst_cpu = target_cpu;
-			eenv.trg_cpu = target_cpu;
-			if (tmp_backup < 0 ||
-			    tmp_backup == prev_cpu ||
-			    energy_diff(&eenv) >= 0) {
+			if (tmp_backup < 0 || energy_diff(&eenv) >= 0) {
 				schedstat_inc(p, se.statistics.nr_wakeups_secb_no_nrg_sav);
 				schedstat_inc(this_rq(), eas_stats.secb_no_nrg_sav);
 				target_cpu = prev_cpu;
