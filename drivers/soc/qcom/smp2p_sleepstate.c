@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2018, The Linux Foundation. All rights reserved.
  * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -36,11 +36,11 @@ static int sleepstate_pm_notifier(struct notifier_block *nb,
 {
 	switch (event) {
 	case PM_SUSPEND_PREPARE:
+		usleep_range(10000, 10500); /* Tuned based on SMP2P latencies */
 		msm_ipc_router_set_ws_allowed(true);
 		break;
 
 	case PM_POST_SUSPEND:
-		usleep_range(10000, 10500); /* Tuned based on SMP2P latencies */
 		msm_ipc_router_set_ws_allowed(false);
 		break;
 	}
