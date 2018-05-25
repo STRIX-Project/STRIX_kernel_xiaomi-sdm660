@@ -78,3 +78,5 @@ SCHED_FEAT(ENERGY_AWARE, true)
 #else
 SCHED_FEAT(ENERGY_AWARE, false)
 #endif
+
+SCHED_FEAT(HISI_FILTER, true)
