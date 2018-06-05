@@ -593,6 +593,13 @@ struct mdss_dsi_ctrl_pdata {
 
 	bool phy_power_off;
 
+	struct notifier_block wake_notif;
+	struct task_struct *wake_thread;
+	struct completion wake_comp;
+	wait_queue_head_t wake_waitq;
+	atomic_t disp_is_on;
+	atomic_t needs_wake;
+
 #ifdef CONFIG_MACH_XIAOMI_SDM660
 	bool dsi_panel_off_mode;
 	int tp_rst_gpio;
