@@ -213,7 +213,7 @@ struct smb2 {
 };
 
 #ifdef CONFIG_MACH_LONGCHEER
-static int __debug_mask = 0xFF;
+static int __debug_mask;
 #else
 static int __debug_mask;
 #endif
