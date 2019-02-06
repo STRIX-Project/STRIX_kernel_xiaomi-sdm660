@@ -2238,8 +2238,10 @@ static int _insert_gpuaddr(struct kgsl_pagetable *pagetable,
 			node = &parent->rb_left;
 		else if (new->base > this->base)
 			node = &parent->rb_right;
-		else
+		else {
 			BUG();
+			kmem_cache_free(addr_entry_cache, new);
+		}
 	}
 
 	rb_link_node(&new->node, parent, node);
