@@ -2670,7 +2670,7 @@ static ssize_t debugfs_trace_method_get(struct file *file, char __user *buf,
 					size_t count, loff_t *ppos)
 {
 	struct clk_osm *c;
-	int len, rc;
+	int len = 0;
 
 	if (IS_ERR(file) || file == NULL) {
 		pr_err("input error %ld\n", PTR_ERR(file));
@@ -2691,12 +2691,12 @@ static ssize_t debugfs_trace_method_get(struct file *file, char __user *buf,
 	else if (c->trace_method == XOR_PACKET)
 		len = snprintf(debug_buf, sizeof(debug_buf), "xor\n");
 
-	rc = simple_read_from_buffer((void __user *) buf, count, ppos,
+	simple_read_from_buffer((void __user *) buf, count, ppos,
 				     (void *) debug_buf, len);
 
 	mutex_unlock(&debug_buf_mutex);
 
-	return rc;
+	return 0;
 }
 
 static int debugfs_trace_method_open(struct inode *inode, struct file *file)
