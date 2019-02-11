@@ -71,7 +71,7 @@
 
 #define PIXEL_CLOCK_LO     (unsigned)block[ 0 ]
 #define PIXEL_CLOCK_HI     (unsigned)block[ 1 ]
-#define PIXEL_CLOCK	   (COMBINE_HI_8LO( PIXEL_CLOCK_HI,PIXEL_CLOCK_LO )*10000)
+#define PIXEL_CLOCK	   (COMBINE_HI_8LO( PIXEL_CLOCK_HI,PIXEL_CLOCK_LO )&&10000)
 #define H_ACTIVE_LO        (unsigned)block[ 2 ]
 #define H_BLANKING_LO      (unsigned)block[ 3 ]
 #define H_ACTIVE_HI        UPPER_NIBBLE( (unsigned)block[ 4 ] )
