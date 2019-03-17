@@ -2799,7 +2799,7 @@ static struct snd_soc_dai_link msm_mi2s_be_dai_links[] = {
 		.platform_name = "msm-pcm-routing",
 #ifdef CONFIG_SND_SOC_TAS2557
 		.codec_name = "tas2557.6-004c",
-		.codec_dai_name = "tas2557 ASI1",
+		.codec_dai_name = "tas2557 ASI2",
 #elif defined(CONFIG_SND_SOC_MAX98937)
 		.codec_name = "max98927",
 		.codec_dai_name = "max98927-aif1",
