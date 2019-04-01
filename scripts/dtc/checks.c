@@ -82,7 +82,8 @@ static inline void  PRINTF(5, 6) check_msg(struct check *c, struct dt_info *dti,
 
 	if ((c->warn && (quiet < 1))
 	    || (c->error && (quiet < 2))) {
-		fprintf(stderr, "%s (%s): ",
+		fprintf(stderr, "%s: %s (%s): ",
+			strcmp(dti->outname, "-") ? dti->outname : "<stdout>",
 			(c->error) ? "ERROR" : "Warning", c->name);
 		if (node) {
 			fprintf(stderr, "%s", node->fullpath);
@@ -278,6 +279,7 @@ ERROR(duplicate_property_names, check_duplicate_property_names, NULL);
 #define UPPERCASE	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define DIGITS		"0123456789"
 #define PROPNODECHARS	LOWERCASE UPPERCASE DIGITS ",._+*#?-"
+#define PROPNODECHARSSTRICT	LOWERCASE UPPERCASE DIGITS ",-"
 
 static void check_node_name_chars(struct check *c, struct dt_info *dti,
 				  struct node *node)
@@ -570,13 +572,13 @@ static void fixup_phandle_references(struct check *c, struct dt_info *dti,
 					FAIL(c, dti, node, "Reference to non-existent node or "
 							"label \"%s\"\n", m->ref);
 				else /* mark the entry as unresolved */
-					*((cell_t *)(prop->val.val + m->offset)) =
+					*((fdt32_t *)(prop->val.val + m->offset)) =
 						cpu_to_fdt32(0xffffffff);
 				continue;
 			}
 
 			phandle = get_node_phandle(dt, refnode);
-			*((cell_t *)(prop->val.val + m->offset)) = cpu_to_fdt32(phandle);
+			*((fdt32_t *)(prop->val.val + m->offset)) = cpu_to_fdt32(phandle);
 		}
 	}
 }
@@ -1372,9 +1374,20 @@ static struct check *check_table[] = {
 
 	&compatible_is_string_list, &names_is_string_list,
 
+	&property_name_chars_strict,
+	&node_name_chars_strict,
+
 	&addr_size_cells, &reg_format, &ranges_format,
 
 	&unit_address_vs_reg,
+	&unit_address_format,
+
+	&pci_bridge,
+	&pci_device_reg,
+	&pci_device_bus_num,
+
+	&simple_bus_bridge,
+	&simple_bus_reg,
 
 	&avoid_default_addr_size,
 	&avoid_unnecessary_addr_size,
