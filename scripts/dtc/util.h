@@ -25,6 +25,14 @@
  *                                                                   USA
  */
 
+#ifdef __GNUC__
+#define PRINTF(i, j)	__attribute__((format (printf, i, j)))
+#define NORETURN	__attribute__((noreturn))
+#else
+#define PRINTF(i, j)
+#define NORETURN
+#endif
+
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 #define stringify(s)	stringify_(s)
@@ -56,13 +64,14 @@ static inline void *xrealloc(void *p, size_t len)
 	void *new = realloc(p, len);
 
 	if (!new)
-		die("realloc() failed (len=%d)\n", len);
+		die("realloc() failed (len=%zd)\n", len);
 
 	return new;
 }
 
 extern char *xstrdup(const char *s);
-extern int xasprintf(char **strp, const char *fmt, ...);
+
+extern int PRINTF(2, 3) xasprintf(char **strp, const char *fmt, ...);
 extern char *join_path(const char *path, const char *name);
 
 /**
@@ -191,7 +200,7 @@ void utilfdt_print_data(const char *data, int len);
 /**
  * Show source version and exit
  */
-void util_version(void) __attribute__((noreturn));
+void NORETURN util_version(void);
 
 /**
  * Show usage and exit
@@ -205,9 +214,10 @@ void util_version(void) __attribute__((noreturn));
  * @param long_opts	The structure of long options
  * @param opts_help	An array of help strings (should align with long_opts)
  */
-void util_usage(const char *errmsg, const char *synopsis,
-		const char *short_opts, struct option const long_opts[],
-		const char * const opts_help[]) __attribute__((noreturn));
+void NORETURN util_usage(const char *errmsg, const char *synopsis,
+			 const char *short_opts,
+			 struct option const long_opts[],
+			 const char * const opts_help[]);
 
 /**
  * Show usage and exit
