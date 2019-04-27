@@ -1255,15 +1255,6 @@ void set_cpus_allowed_common(struct task_struct *p, const struct cpumask *new_ma
 static const struct cpumask *adjust_cpumask(struct task_struct *p,
 					    const struct cpumask *req_mask)
 {
-	/* Force all performance-critical kthreads onto the big cluster */
-	if (p->flags & PF_PERF_CRITICAL)
-		return cpu_perf_mask;
-
-	/* Force all trivial, unbound kthreads onto the little cluster */
-	if (p->flags & PF_KTHREAD && p->pid != 1 &&
-		cpumask_equal(req_mask, cpu_all_mask))
-		return cpu_lp_mask;
-
 	return req_mask;
 }
 
