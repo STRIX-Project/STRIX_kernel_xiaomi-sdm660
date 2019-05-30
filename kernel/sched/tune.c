@@ -1207,6 +1207,14 @@ int get_sched_boost(void)
 	return st_ta->sched_boost;
 }
 
+int do_prefer_idle(u64 prefer_idle)
+{
+	if (unlikely(!st_ta))
+		return -EINVAL;
+
+	return prefer_idle_write(&st_ta->css, NULL, prefer_idle);
+}
+
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 #else /* CONFIG_CGROUP_SCHEDTUNE */
