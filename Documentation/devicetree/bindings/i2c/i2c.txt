@@ -36,6 +36,10 @@ wants to support one of the below features, it should adapt the bindings below.
 - interrupt-names	- "irq" and "wakeup" names are recognized by I2C core,
 			  other names are left to individual drivers.
 
+- async-suspend
+	device supports async suspend/resume.
+
+
 Binding may contain optional "interrupts" property, describing interrupts
 used by the device. I2C core will assign "irq" interrupt (or the very first
 interrupt if not using interrupt names) as primary interrupt for the slave.
