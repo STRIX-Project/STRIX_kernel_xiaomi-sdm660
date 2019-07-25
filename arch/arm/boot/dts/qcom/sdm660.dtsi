@@ -48,7 +48,7 @@
 
 		CPU0: cpu@0 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x0>;
 			clock-frequency = <1612800000>;
 			enable-method = "psci";
@@ -79,7 +79,7 @@
 
 		CPU1: cpu@1 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x1>;
 			clock-frequency = <1612800000>;
 			enable-method = "psci";
@@ -104,7 +104,7 @@
 
 		CPU2: cpu@2 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x2>;
 			clock-frequency = <1612800000>;
 			enable-method = "psci";
@@ -129,7 +129,7 @@
 
 		CPU3: cpu@3 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x3>;
 			clock-frequency = <1612800000>;
 			enable-method = "psci";
@@ -154,7 +154,7 @@
 
 		CPU4: cpu@100 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x100>;
 			clock-frequency = <1612800000>;
 			enable-method = "psci";
@@ -183,7 +183,7 @@
 
 		CPU5: cpu@101 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x101>;
 			clock-frequency = <1804800000>;
 			enable-method = "psci";
@@ -208,7 +208,7 @@
 
 		CPU6: cpu@102 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x102>;
 			clock-frequency = <1804800000>;
 			enable-method = "psci";
@@ -233,7 +233,7 @@
 
 		CPU7: cpu@103 {
 			device_type = "cpu";
-			compatible = "arm,armv8";
+			compatible = "arm,kryo";
 			reg = <0x0 0x103>;
 			clock-frequency = <1804800000>;
 			enable-method = "psci";
