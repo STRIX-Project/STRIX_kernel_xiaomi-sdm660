@@ -1205,6 +1205,16 @@ int do_prefer_idle(char *st_name, u64 prefer_idle)
 	return prefer_idle_write(&st->css, NULL, prefer_idle);
 }
 
+int get_sched_boost(char *st_name)
+{
+	struct schedtune *st = getSchedtune(st_name);
+
+	if (!st)
+		return -EINVAL;
+
+	return st->sched_boost;
+}
+
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 #else /* CONFIG_CGROUP_SCHEDTUNE */
