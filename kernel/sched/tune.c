@@ -1153,7 +1153,7 @@ int reset_stune_boost(char *st_name, int slot)
 	int boost = 0;
 	struct schedtune *st = stune_get_by_name(st_name);
 
-	if (!st)
+	if (unlikely(!st))
 		return -EINVAL;
 
 	ret = deactivate_boost_slot(st, slot);
@@ -1176,7 +1176,7 @@ int do_stune_sched_boost(char *st_name, int *slot)
 {
 	struct schedtune *st = stune_get_by_name(st_name);
 
-	if (!st)
+	if (unlikely(!st))
 		return -EINVAL;
 
 	return _do_stune_boost(st, st->sched_boost, slot);
@@ -1186,7 +1186,7 @@ int do_stune_boost(char *st_name, int boost, int *slot)
 {
 	struct schedtune *st = stune_get_by_name(st_name);
 
-	if (!st)
+	if (unlikely(!st))
 		return -EINVAL;
 
 	return _do_stune_boost(st, boost, slot);
@@ -1196,7 +1196,7 @@ int do_prefer_idle(char *st_name, u64 prefer_idle)
 {
 	struct schedtune *st = stune_get_by_name(st_name);
 
-	if (!st)
+	if (unlikely(!st))
 		return -EINVAL;
 
 	return prefer_idle_write(&st->css, NULL, prefer_idle);
