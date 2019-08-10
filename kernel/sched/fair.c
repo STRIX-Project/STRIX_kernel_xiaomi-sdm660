@@ -38,6 +38,10 @@
 #include "tune.h"
 #include "walt.h"
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+extern bool dsb_boosting;
+#endif
+
 /*
  * Targeted preemption latency for CPU-bound tasks:
  * (default: 6ms * (1 + ilog(ncpus)), units: nanoseconds)
@@ -6510,8 +6514,12 @@ boosted_cpu_util(int cpu)
 	long margin = schedtune_cpu_margin(util, cpu);
 
 	trace_sched_boost_cpu(cpu, util, margin);
-
+	
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+	if (dsb_boosting || sched_feat(SCHEDTUNE_BOOST_UTIL))
+#else
 	if (sched_feat(SCHEDTUNE_BOOST_UTIL))
+#endif
 		return util + margin;
 	else
 		return util;
@@ -6525,7 +6533,11 @@ boosted_task_util(struct task_struct *p)
 
 	trace_sched_boost_task(p, util, margin);
 
+#ifdef CONFIG_DYNAMIC_STUNE_BOOST
+	if (dsb_boosting || sched_feat(SCHEDTUNE_BOOST_UTIL))
+#else
 	if (sched_feat(SCHEDTUNE_BOOST_UTIL))
+#endif
 		return util + margin;
 	else
 		return util;
