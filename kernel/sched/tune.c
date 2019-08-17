@@ -1237,7 +1237,6 @@ schedtune_add_cluster_nrg(
 	struct sched_group *sg2;
 
 	struct cpumask *cluster_cpus;
-	char str[32];
 
 	unsigned long min_pwr;
 	unsigned long max_pwr;
@@ -1245,13 +1244,9 @@ schedtune_add_cluster_nrg(
 
 	/* Get Cluster energy using EM data for the first CPU */
 	cluster_cpus = sched_group_cpus(sg);
-	snprintf(str, 32, "CLUSTER[%*pbl]",
-		 cpumask_pr_args(cluster_cpus));
 
 	min_pwr = sg->sge->idle_states[sg->sge->nr_idle_states - 1].power;
 	max_pwr = sg->sge->cap_states[sg->sge->nr_cap_states - 1].power;
-	pr_info("schedtune: %-17s min_pwr: %5lu max_pwr: %5lu\n",
-		str, min_pwr, max_pwr);
 
 	/*
 	 * Keep track of this cluster's energy in the computation of the
@@ -1271,10 +1266,6 @@ schedtune_add_cluster_nrg(
 
 			ste->min_power += min_pwr;
 			ste->max_power += max_pwr;
-
-			snprintf(str, 32, "CPU[%d]", cpu);
-			pr_info("schedtune: %-17s min_pwr: %5lu max_pwr: %5lu\n",
-				str, min_pwr, max_pwr);
 
 			/*
 			 * Assume we have EM data only at the CPU and

@@ -226,19 +226,8 @@ static int sched_energy_probe(struct platform_device *pdev)
 						break;
 					sge->cap_states[i].cap = cap;
 				}
-
-				dev_dbg(&pdev->dev,
-					"cpu=%d freq=%ld cap=%ld power_d0=%ld\n",
-					cpu, freq, sge_l0->cap_states[i].cap,
-					sge_l0->cap_states[i].power);
 			}
 		}
-
-		dev_dbg(&pdev->dev,
-			"cpu=%d efficiency=%d max_frequency=%ld max_efficiency=%d cpu_max_capacity=%ld\n",
-			cpu, efficiency, max_frequencies[cpu], max_efficiency,
-			cpu_max_cap);
-
 		arch_update_cpu_capacity(cpu);
 	}
 
