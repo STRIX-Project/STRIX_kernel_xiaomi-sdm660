@@ -271,6 +271,7 @@ static struct tp_common_ops double_tap_ops = {
 	.show = double_tap_show,
 	.store = double_tap_store
 };
+
 #endif
 
 static int nvt_gesture_read(struct seq_file *file, void *v)

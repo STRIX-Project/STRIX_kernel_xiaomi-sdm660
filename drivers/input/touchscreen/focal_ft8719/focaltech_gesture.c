@@ -274,7 +274,6 @@ static ssize_t fts_gesture_write(struct file *file, const char __user *buf,
 	.read = seq_read,
 	.llseek = seq_lseek,
 };
-#define FTS_GESTURE_NAME "fts_wake_gesture"
 
 /*****************************************************************************
 *   Name: fts_create_gesture_sysfs
@@ -639,7 +638,7 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
     __set_bit(KEY_GESTURE_Z, input_dev->keybit);
 
     fts_create_gesture_sysfs(client);
-    proc_create(FTS_GESTURE_NAME, 0666, NULL, &fts_gesture_fops);
+    proc_create("wake_node", 0666, NULL, &fts_gesture_fops);
 
 #ifdef CONFIG_TOUCHSCREEN_COMMON
        ret = tp_common_set_double_tap_ops(&double_tap_ops);
