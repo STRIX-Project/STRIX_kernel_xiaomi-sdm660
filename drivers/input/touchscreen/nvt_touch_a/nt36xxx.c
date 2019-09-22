@@ -146,7 +146,7 @@ static ssize_t nvt_gesture_write(struct file *file, const char __user *buf,
 			 size_t count, loff_t *ppos)
 {
 	uint8_t str;
-	if(copy_from_user(&str, buf, 1)); // ignore
+	copy_from_user(&str, buf, 1);
 	enable_gesture_mode = (str == '1');
 	return 1;
 }
