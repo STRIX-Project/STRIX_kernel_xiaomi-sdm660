@@ -30,6 +30,8 @@
 #include <linux/list_lru.h>
 #include <linux/uaccess.h>
 #include <linux/highmem.h>
+#include <linux/sizes.h>
+
 #include "binder_alloc.h"
 #include "binder_trace.h"
 
@@ -692,15 +694,16 @@ int binder_alloc_mmap_handler(struct binder_alloc *alloc,
 	alloc->buffer = (void __user *)vma->vm_start;
 	mutex_unlock(&binder_alloc_mmap_lock);
 
-	alloc->pages = kzalloc(sizeof(alloc->pages[0]) *
-				   ((vma->vm_end - vma->vm_start) / PAGE_SIZE),
+	alloc->buffer_size = min_t(unsigned long, vma->vm_end - vma->vm_start,
+				   SZ_4M);
+	alloc->pages = kcalloc(alloc->buffer_size / PAGE_SIZE,
+			       sizeof(alloc->pages[0]),
 			       GFP_KERNEL);
 	if (alloc->pages == NULL) {
 		ret = -ENOMEM;
 		failure_string = "alloc page array";
 		goto err_alloc_pages_failed;
 	}
-	alloc->buffer_size = vma->vm_end - vma->vm_start;
 
 	buffer = kzalloc(sizeof(*buffer), GFP_KERNEL);
 	if (!buffer) {
