@@ -258,7 +258,7 @@ static enum oom_constraint constrained_alloc(struct oom_control *oc,
 static enum oom_constraint constrained_alloc(struct oom_control *oc,
 					     unsigned long *totalpages)
 {
-	*totalpages = totalram_pages + total_swap_pages;
+	*totalpages = totalram_pages() + total_swap_pages;
 	return CONSTRAINT_NONE;
 }
 #endif
