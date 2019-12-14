@@ -239,10 +239,8 @@ static short adj_max_shift = 353;
 module_param_named(adj_max_shift, adj_max_shift, short,
                    S_IRUGO | S_IWUSR);
 
-/* User knob to enable/disable adaptive lmk feature */
-static int enable_adaptive_lmk;
-module_param_named(enable_adaptive_lmk, enable_adaptive_lmk, int,
-		   S_IRUGO | S_IWUSR);
+/* disable adaptive lmk feature */
+static int enable_adaptive_lmk = 0;
 
 /*
  * This parameter controls the behaviour of LMK when vmpressure is in
