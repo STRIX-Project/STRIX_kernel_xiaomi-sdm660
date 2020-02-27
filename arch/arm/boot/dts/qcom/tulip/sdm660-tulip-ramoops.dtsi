@@ -13,22 +13,12 @@
 /* ramoops dts configuration */
 / {
 	reserved-memory {
-		ramoops_mem: ramoops_mem@ac000000 {
-			reg = <0 0x9ff00000 0 0x00100000>;
-			label = "ramoops_mem";
+		pstore_reserve_mem: pstore_reserve_mem_region@0 {
+			linux,reserve-contiguous-region;
+			linux,reserve-region;
+			linux,remove-completely;
+			reg = <0x0 0xA0000000 0x0 0x00400000>;
+			label = "pstore_reserve_mem";
 		};
-	};
-};
-
-&soc {
-	ramoops {
-		compatible = "ramoops";
-		status = "ok";
-		memory-region = <&ramoops_mem>;
-
-		console-size = <0x0 0x00080000>;
-		pmsg-size    = <0x0 0x00040000>;
-		record-size  = <0x0 0x00008000>;
-		ftrace-size  = <0x0 0x00020000>;
 	};
 };
