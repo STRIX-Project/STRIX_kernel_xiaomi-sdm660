@@ -542,17 +542,16 @@ static void devfreq_cpufreq_gov_stop(struct devfreq *devfreq)
 static int devfreq_cpufreq_ev_handler(struct devfreq *devfreq,
 					unsigned int event, void *data)
 {
-	int ret;
+	int ret = 0;
 
 	switch (event) {
 	case DEVFREQ_GOV_START:
 
 		ret = devfreq_cpufreq_gov_start(devfreq);
-		if (ret) {
+		if (ret)
 			pr_err("Governor start failed!\n");
-			return ret;
-		}
-		pr_debug("Enabled dev CPUfreq governor\n");
+		else
+			pr_debug("Enabled dev CPUfreq governor\n");
 		break;
 
 	case DEVFREQ_GOV_STOP:
@@ -562,7 +561,7 @@ static int devfreq_cpufreq_ev_handler(struct devfreq *devfreq,
 		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 static struct devfreq_governor devfreq_cpufreq = {

@@ -71,7 +71,7 @@ int devfreq_vbif_update_bw(unsigned long ib, unsigned long ab)
 static int devfreq_vbif_ev_handler(struct devfreq *devfreq,
 					unsigned int event, void *data)
 {
-	int ret;
+	int ret = 0;
 	struct devfreq_dev_status stat;
 
 	switch (event) {
@@ -90,15 +90,15 @@ static int devfreq_vbif_ev_handler(struct devfreq *devfreq,
 		ret = devfreq_vbif_update_bw(0, 0);
 		if (ret) {
 			pr_err("Unable to update BW! Gov start failed!\n");
-			return ret;
+		} else {
+			/*
+			 * Normally at this point governors start the polling with
+			 * devfreq_monitor_start(df);
+			 * This governor doesn't poll, but expect external calls
+			 * of its devfreq_vbif_update_bw() function
+			 */
+			pr_debug("Enabled MSM VBIF governor\n");
 		}
-		/*
-		 * Normally at this point governors start the polling with
-		 * devfreq_monitor_start(df);
-		 * This governor doesn't poll, but expect external calls
-		 * of its devfreq_vbif_update_bw() function
-		 */
-		pr_debug("Enabled MSM VBIF governor\n");
 		break;
 
 	case DEVFREQ_GOV_STOP:
@@ -110,7 +110,7 @@ static int devfreq_vbif_ev_handler(struct devfreq *devfreq,
 		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 static struct devfreq_governor devfreq_vbif = {
