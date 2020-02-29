@@ -284,7 +284,7 @@ static struct attribute_group dev_attr_group = {
 static int devfreq_memlat_ev_handler(struct devfreq *df,
 					unsigned int event, void *data)
 {
-	int ret;
+	int ret = 0;
 	unsigned int sample_ms;
 
 	switch (event) {
@@ -295,11 +295,9 @@ static int devfreq_memlat_ev_handler(struct devfreq *df,
 		df->profile->polling_ms = sample_ms;
 
 		ret = gov_start(df);
-		if (ret)
-			return ret;
-
-		dev_dbg(df->dev.parent,
-			"Enabled Memory Latency governor\n");
+		if (!ret)
+			dev_dbg(df->dev.parent,
+				"Enabled Memory Latency governor\n");
 		break;
 
 	case DEVFREQ_GOV_STOP:
@@ -316,7 +314,7 @@ static int devfreq_memlat_ev_handler(struct devfreq *df,
 		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 static struct devfreq_governor devfreq_gov_memlat = {
