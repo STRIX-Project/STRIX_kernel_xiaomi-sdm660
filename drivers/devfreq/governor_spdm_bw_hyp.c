@@ -153,7 +153,7 @@ static int gov_spdm_hyp_eh(struct devfreq *devfreq, unsigned int event,
 	struct spdm_args desc = { { 0 } };
 	int ext_status = 0;
 	struct spdm_data *spdm_data = (struct spdm_data *)devfreq->data;
-	int i;
+	int i, ret = 0;
 
 	switch (event) {
 	case DEVFREQ_GOV_START:
@@ -301,10 +301,11 @@ static int gov_spdm_hyp_eh(struct devfreq *devfreq, unsigned int event,
 			 * */
 			list_del(&spdm_data->list);
 			mutex_unlock(&devfreqs_lock);
-			return -EINVAL;
+			ret = -EINVAL;
+		} else {
+			spdm_data->enabled = true;
+			devfreq_monitor_start(devfreq);
 		}
-		spdm_data->enabled = true;
-		devfreq_monitor_start(devfreq);
 		break;
 
 	case DEVFREQ_GOV_STOP:
@@ -340,7 +341,7 @@ static int gov_spdm_hyp_eh(struct devfreq *devfreq, unsigned int event,
 		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 static struct devfreq_governor spdm_hyp_gov = {
