@@ -548,6 +548,9 @@ extern struct cpufreq_governor cpufreq_gov_darkutil;
 #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_ELECTROUTIL)
 extern struct cpufreq_governor cpufreq_gov_electroutil;
 #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_electroutil)
+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_SCHEDHORIZON)
+extern struct cpufreq_governor cpufreq_gov_schedhorizon;
+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_schedhorizon)
 #endif
 
 static inline void cpufreq_policy_apply_limits(struct cpufreq_policy *policy)
