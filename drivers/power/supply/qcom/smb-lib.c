@@ -48,6 +48,15 @@ extern int hwc_check_global;
 				__func__, ##__VA_ARGS__);	\
 	} while (0)
 
+#ifdef CONFIG_MACH_XIAOMI_LAVENDER
+struct g_nvt_data {
+	bool valid;
+	bool usb_plugin;
+	struct work_struct nvt_usb_plugin_work;
+};
+extern struct g_nvt_data g_nvt;
+#endif
+
 static bool is_secure(struct smb_charger *chg, int addr)
 {
 	if (addr == SHIP_MODE_REG || addr == FREQ_CLK_DIV_REG)
@@ -1245,7 +1254,7 @@ static int smblib_hvdcp_hw_inov_dis_vote_callback(struct votable *votable,
 	struct smb_charger *chg = data;
 	int rc;
 
-#if defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_WHYRED) || defined(CONFIG_MACH_XIAOMI_TULIP)
+#ifdef CONFIG_MACH_LONGCHEER
 	disable = 0;
 #endif
 	if (disable) {
@@ -2034,7 +2043,7 @@ int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 		val->intval,chg->system_temp_level, LctThermal, lct_backlight_off, LctIsInCall, hwc_check_india);
 
 	if (LctThermal == 0)
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
+#if defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 		if (val->intval < 6)
 #endif
 		lct_therm_lvl_reserved.intval = val->intval;
@@ -2046,7 +2055,7 @@ int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 			if ((lct_backlight_off) && (LctIsInCall == 0) && (val->intval > 1))
 				return 0;
 		}
-#elif defined(CONFIG_MACH_XIAOMI_WAYNE)
+#elif defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 	if ((lct_backlight_off) && (LctIsInCall == 0) && (val->intval > 2))
 		return 0;
 #elif defined(CONFIG_MACH_XIAOMI_TULIP)
@@ -2058,7 +2067,7 @@ int smblib_set_prop_system_temp_level(struct smb_charger *chg,
 	if ((lct_backlight_off) && (LctIsInCall == 0) && (val->intval > 1) && (hwc_check_india == 1))
 	    return 0;
 #endif
-#if defined(CONFIG_MACH_XIAOMI_WHYRED) || defined(CONFIG_MACH_XIAOMI_WAYNE)
+#if defined(CONFIG_MACH_XIAOMI_LAVENDER) || defined(CONFIG_MACH_XIAOMI_WHYRED) || defined(CONFIG_MACH_XIAOMI_WAYNE)
 	if ((LctIsInCall == 1) && (val->intval != 4))
 		return 0;
 #elif defined(CONFIG_MACH_XIAOMI_TULIP)
@@ -3622,6 +3631,12 @@ void smblib_usb_plugin_hard_reset_locked(struct smb_charger *chg)
 	power_supply_changed(chg->usb_psy);
 	smblib_dbg(chg, PR_INTERRUPT, "IRQ: usbin-plugin %s\n",
 					vbus_rising ? "attached" : "detached");
+#ifdef CONFIG_MACH_XIAOMI_LAVENDER
+	if (g_nvt.valid) {
+		g_nvt.usb_plugin = vbus_rising;
+		schedule_work(&g_nvt.nvt_usb_plugin_work);
+	}
+#endif
 }
 
 #define PL_DELAY_MS			30000
@@ -3966,13 +3981,13 @@ static void smblib_force_legacy_icl(struct smb_charger *chg, int pst)
 		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, false, 0);
 		break;
 	case POWER_SUPPLY_TYPE_USB_CDP:
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
+#if defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 		vote(chg->usb_icl_votable, USER_VOTER, false, 0);
 #endif
 		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 1500000);
 		break;
 	case POWER_SUPPLY_TYPE_USB_DCP:
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
+#if defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 		vote(chg->usb_icl_votable, USER_VOTER, false, 0);
 #endif
 		typec_mode = smblib_get_prop_typec_mode(chg);
@@ -3985,7 +4000,7 @@ static void smblib_force_legacy_icl(struct smb_charger *chg, int pst)
 		 * if this is a SDP and appropriately set the current
 		 */
 #ifdef CONFIG_MACH_LONGCHEER
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
+#if defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 		vote(chg->usb_icl_votable, USER_VOTER, false, 0);
 #endif
 #ifdef CONFIG_MACH_XIAOMI_WHYRED
@@ -4001,7 +4016,7 @@ static void smblib_force_legacy_icl(struct smb_charger *chg, int pst)
 #ifdef CONFIG_MACH_LONGCHEER
 #if defined(CONFIG_MACH_XIAOMI_TULIP)
 		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 2000000);
-#elif defined(CONFIG_MACH_XIAOMI_WAYNE)
+#elif defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 		vote(chg->usb_icl_votable, USER_VOTER, true, 1500000);
 #else
 		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 1500000);
@@ -4011,7 +4026,7 @@ static void smblib_force_legacy_icl(struct smb_charger *chg, int pst)
 	case POWER_SUPPLY_TYPE_USB_HVDCP_3:
 #if defined(CONFIG_MACH_XIAOMI_WHYRED) || defined(CONFIG_MACH_XIAOMI_TULIP)
 		vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 2000000);
-#elif defined(CONFIG_MACH_XIAOMI_WAYNE)
+#elif defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 		vote(chg->usb_icl_votable, USER_VOTER, false, 0);
 		if (hwc_check_global)
 			vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true, 2300000);
@@ -4115,7 +4130,7 @@ static void smblib_handle_apsd_done(struct smb_charger *chg, bool rising)
 			smblib_set_prop_pd_active(chg, &pval);
 			chg->float_rerun_apsd = false;
 		} else if (apsd_result->bit & FLOAT_CHARGER_BIT) {
-#if defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_TULIP)
+#if defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_TULIP) || defined(CONFIG_MACH_XIAOMI_LAVENDER)
 			vote(chg->usb_icl_votable, LEGACY_UNKNOWN_VOTER, true,
 					1000000);
 #else
