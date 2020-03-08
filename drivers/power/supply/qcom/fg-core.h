@@ -448,9 +448,6 @@ struct fg_chip {
 	bool			battery_missing;
 	bool			fg_restarting;
 	bool			charge_full;
-#ifdef CONFIG_MACH_XIAOMI_WAYNE
-	bool			report_full;
-#endif
 	bool			recharge_soc_adjusted;
 	bool			ki_coeff_dischg_en;
 	bool			esr_fcc_ctrl_en;
@@ -460,6 +457,9 @@ struct fg_chip {
 	bool			use_ima_single_mode;
 	bool			qnovo_enable;
 	bool			suspended;
+#if defined(CONFIG_MACH_XIAOMI_LAVENDER) || defined(CONFIG_MACH_XIAOMI_WAYNE)
+	bool			report_full;
+#endif
 	struct completion	soc_update;
 	struct completion	soc_ready;
 	struct delayed_work	profile_load_work;
