@@ -56,6 +56,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea0>;
 			efficiency = <1024>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L2_0: l2-cache {
@@ -87,6 +88,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea1>;
 			efficiency = <1024>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L1_I_1: l1-icache {
@@ -112,6 +114,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea2>;
 			efficiency = <1024>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L1_I_2: l1-icache {
@@ -137,6 +140,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea3>;
 			efficiency = <1024>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_0 &CLUSTER_COST_0>;
 			next-level-cache = <&L2_0>;
 			L1_I_3: l1-icache {
@@ -162,6 +166,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea4>;
 			efficiency = <1638>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L2_1: l2-cache {
@@ -191,6 +196,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea5>;
 			efficiency = <1638>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L1_I_101: l1-icache {
@@ -216,6 +222,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea6>;
 			efficiency = <1638>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L1_I_102: l1-icache {
@@ -241,6 +248,7 @@
 			#cooling-cells = <2>;
 			qcom,ea = <&ea7>;
 			efficiency = <1638>;
+			freq-energy-model;
 			sched-energy-costs = <&CPU_COST_1 &CLUSTER_COST_1>;
 			next-level-cache = <&L2_1>;
 			L1_I_103: l1-icache {
