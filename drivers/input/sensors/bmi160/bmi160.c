@@ -17171,9 +17171,9 @@ u8 v_mag_sec_if_pow_mode_u8)
 	}
 	/* set mag interface auto mode*/
 	if (p_bmi160->mag_manual_enable == BMI160_MANUAL_ENABLE)
-		com_rslt += bmi160_set_mag_manual_enable(
-		BMI160_MANUAL_DISABLE);
-		p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
+	com_rslt += bmi160_set_mag_manual_enable(
+	BMI160_MANUAL_DISABLE);
+	p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
 	return com_rslt;
 }
 /*!
@@ -17948,8 +17948,8 @@ const s8 *p_offset_s8)
 	BMI160_RETURN_FUNCTION_TYPE com_rslt = E_BMI160_COMM_RES;
 
 	if (p_bmi160->mag_manual_enable != BMI160_MANUAL_ENABLE)
-		com_rslt = bmi160_set_mag_manual_enable(BMI160_MANUAL_ENABLE);
-		p_bmi160->delay_msec(BMI160_YAS532_OFFSET_DELAY);
+	com_rslt = bmi160_set_mag_manual_enable(BMI160_MANUAL_ENABLE);
+	p_bmi160->delay_msec(BMI160_YAS532_OFFSET_DELAY);
 
 	    /* Write offset X data*/
 		com_rslt = bmi160_set_mag_write_data(p_offset_s8[0]);
@@ -18462,9 +18462,9 @@ u8 v_command_reg_data_u8)
 	BMI160_RETURN_FUNCTION_TYPE com_rslt = E_BMI160_COMM_RES;
 
 	if (p_bmi160->mag_manual_enable != BMI160_MANUAL_ENABLE)
-			com_rslt = bmi160_set_mag_manual_enable(
-			BMI160_MANUAL_ENABLE);
-			p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
+	com_rslt = bmi160_set_mag_manual_enable(
+	BMI160_MANUAL_ENABLE);
+	p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
 
 		com_rslt = bmi160_set_mag_write_data(v_command_reg_data_u8);
 		p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
@@ -18479,9 +18479,9 @@ u8 v_command_reg_data_u8)
 		p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
 
 	if (p_bmi160->mag_manual_enable == BMI160_MANUAL_ENABLE)
-		com_rslt += bmi160_set_mag_manual_enable(
-		BMI160_MANUAL_DISABLE);
-		p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
+	com_rslt += bmi160_set_mag_manual_enable(
+	BMI160_MANUAL_DISABLE);
+	p_bmi160->delay_msec(BMI160_GEN_READ_WRITE_DELAY);
 
 	return com_rslt;
 
