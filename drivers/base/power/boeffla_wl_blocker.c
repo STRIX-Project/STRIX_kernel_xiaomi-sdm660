@@ -209,7 +209,7 @@ static int boeffla_wl_blocker_init(void)
 	}
 
 	/* initialize default list */
-	snprintf(list_wl_default, sizeof(LIST_WL_DEFAULT), "%s", LIST_WL_DEFAULT);
+	scnprintf(list_wl_default, sizeof(LIST_WL_DEFAULT), "%s", LIST_WL_DEFAULT);
 	build_search_string(list_wl_default, list_wl);
 
 	/* Print debug info */
