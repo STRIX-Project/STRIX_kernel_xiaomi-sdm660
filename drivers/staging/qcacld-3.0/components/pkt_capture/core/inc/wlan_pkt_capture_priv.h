@@ -30,6 +30,7 @@
 #include "wlan_pkt_capture_objmgr.h"
 #include "wlan_pkt_capture_public_structs.h"
 #include "wlan_pkt_capture_mon_thread.h"
+#include "i_qdf_event.h"
 
 /**
  * struct wlan_pkt_capture_tx_ops - structure of tx operation function
