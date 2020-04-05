@@ -117,7 +117,7 @@
 
 		fstab {
 			vendor {
-				fsmgr_flags = "wait,avb";
+				fsmgr_flags = "wait";
 			};
 		};
 	};
