@@ -213,6 +213,12 @@ config HOTPLUG_SIZE_BITS
 	 of 2.
 	 If unsure, stick with default value.
 
+config THERMAL_SWITCH
+	default n
+	bool "Support themral config switch"
+	help
+	 Support themral config switch.
+
 config ARM64_DMA_USE_IOMMU
 	bool
 	select ARM_HAS_SG_CHAIN
