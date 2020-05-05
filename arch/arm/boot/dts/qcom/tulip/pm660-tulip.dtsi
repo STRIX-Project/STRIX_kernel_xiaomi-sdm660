@@ -63,13 +63,16 @@
 	qcom,fg-recharge-voltage = <4340>;
 };
 
-/* msm-pm660l.dtsi tulip specific diff */
+/* Red led was used for powersupply of White led */
 &red_led {
-	qcom,ramp-step-ms = <128>;
-	qcom,idx-len = <26>;
-	qcom,duty-pcts =
-		[3C 3C 3B 3A 3B 37 35 33 31 2E 2A 27 23
-		1F 1B 17 13 0E 09 05 00 00 00 00 00 00];
+	linux,name = "white";
+	qcom,duty-pcts = [ 00 0E 1C 2A 38 46 54 64 ];
+	qcom,idx-len = <8>;
+	qcom,pause-lo = <500>;
+	qcom,pause-hi = <500>;
+	qcom,ramp-step-ms = <50>;
+	qcom,lut-flags = <31>; /* loop, ramp up, reverse, pause hi, pause lo */
+	qcom,use-blink;
 };
 
 &pm660l_wled {
