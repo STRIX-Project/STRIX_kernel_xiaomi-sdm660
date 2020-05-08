@@ -196,15 +196,13 @@ int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc, struct dwc3_ep *dep)
 	/* MDWIDTH is represented in bits, we need it in bytes */
 	mdwidth >>= 3;
 
+	if (dep->endpoint.ep_type == EP_TYPE_GSI || dep->endpoint.endless)
+		mult = 3;
+
 	if (((dep->endpoint.maxburst > 1) &&
 			usb_endpoint_xfer_bulk(dep->endpoint.desc))
 			|| usb_endpoint_xfer_isoc(dep->endpoint.desc))
 		mult = 3;
-
-	if ((dep->endpoint.maxburst > 6) &&
-			usb_endpoint_xfer_bulk(dep->endpoint.desc)
-			&& dwc3_is_usb31(dwc))
-		mult = 6;
 
 	tmp = ((max_packet + mdwidth) * mult) + mdwidth;
 	fifo_size = DIV_ROUND_UP(tmp, mdwidth);
@@ -927,12 +925,6 @@ static void dwc3_prepare_one_trb(struct dwc3_ep *dep,
 	if (usb_endpoint_xfer_bulk(dep->endpoint.desc) && dep->stream_capable)
 		trb->ctrl |= DWC3_TRB_CTRL_SID_SOFN(req->request.stream_id);
 
-	/*
-	 * Ensure that updates of buffer address and size happens
-	 * before we set the DWC3_TRB_CTRL_HWO so that core
-	 * does not process any stale TRB.
-	 */
-	mb();
 	trb->ctrl |= DWC3_TRB_CTRL_HWO;
 
 	trace_dwc3_prepare_trb(dep, trb);
