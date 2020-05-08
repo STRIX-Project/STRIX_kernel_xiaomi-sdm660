@@ -2158,12 +2158,6 @@ static int dwc3_msm_suspend(struct dwc3_msm *mdwc, bool hibernation)
 
 	/* Suspend SS PHY */
 	if (dwc->maximum_speed == USB_SPEED_SUPER) {
-		if (mdwc->in_host_mode) {
-			u32 reg = dwc3_readl(dwc->regs, DWC3_GUSB3PIPECTL(0));
-
-			reg |= DWC3_GUSB3PIPECTL_DISRXDETU3;
-			dwc3_writel(dwc->regs, DWC3_GUSB3PIPECTL(0), reg);
-		}
 		/* indicate phy about SS mode */
 		if (dwc3_msm_is_superspeed(mdwc))
 			mdwc->ss_phy->flags |= DEVICE_IN_SS_MODE;
@@ -2265,13 +2259,6 @@ static int dwc3_msm_resume(struct dwc3_msm *mdwc)
 
 	dev_dbg(mdwc->dev, "%s: exiting lpm\n", __func__);
 
-	/*
-	 * If h/w exited LPM without any events, ensure
-	 * h/w is reset before processing any new events.
-	 */
-	if (!mdwc->vbus_active && mdwc->id_state)
-		set_bit(WAIT_FOR_LPM, &mdwc->inputs);
-
 	mutex_lock(&mdwc->suspend_resume_mutex);
 	if (!atomic_read(&dwc->in_lpm)) {
 		dev_dbg(mdwc->dev, "%s: Already resumed\n", __func__);
@@ -2347,13 +2334,6 @@ static int dwc3_msm_resume(struct dwc3_msm *mdwc)
 		usb_phy_set_suspend(mdwc->ss_phy, 0);
 		mdwc->ss_phy->flags &= ~DEVICE_IN_SS_MODE;
 		mdwc->lpm_flags &= ~MDWC3_SS_PHY_SUSPEND;
-
-		if (mdwc->in_host_mode) {
-			u32 reg = dwc3_readl(dwc->regs, DWC3_GUSB3PIPECTL(0));
-
-			reg &= ~DWC3_GUSB3PIPECTL_DISRXDETU3;
-			dwc3_writel(dwc->regs, DWC3_GUSB3PIPECTL(0), reg);
-		}
 	}
 
 	mdwc->hs_phy->flags &= ~(PHY_HSFS_MODE | PHY_LS_MODE);
