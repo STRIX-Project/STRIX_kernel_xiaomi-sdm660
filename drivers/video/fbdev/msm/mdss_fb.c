@@ -74,11 +74,6 @@
 #define EXPORT_COMPAT(x)
 #endif
 
-//Easily enable sRGB with module param
-//Part of the sRGB reset fix!
-int srgb_enabled = 0;
-module_param(srgb_enabled, int, 0644);
-
 #define MAX_FBI_LIST 32
 
 #ifndef TARGET_HW_MDSS_MDP3
@@ -976,11 +971,6 @@ static ssize_t mdss_fb_idle_pc_notify(struct device *dev,
 {
 	return scnprintf(buf, PAGE_SIZE, "idle power collapsed\n");
 }
-
-	//This simply fixes sRGB reset after screen off/on
-	if(srgb_enabled == 1){
-		first_srgb_state = 2;
-	}
 
 static DEVICE_ATTR(msm_fb_type, S_IRUGO, mdss_fb_get_type, NULL);
 static DEVICE_ATTR(msm_fb_split, S_IRUGO | S_IWUSR, mdss_fb_show_split,
