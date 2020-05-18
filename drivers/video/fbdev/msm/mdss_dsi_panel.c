@@ -40,13 +40,8 @@ struct mdss_dsi_ctrl_pdata *ctrl_pdata_whitepoint;
 EXPORT_SYMBOL(g_lcd_id);
 extern bool enable_gesture_mode;
 
-#ifdef CONFIG_MACH_XIAOMI_LAVENDER
-#define TP_RESET_GPIO 66
-extern bool synaptics_gesture_enable_flag;
-#elif defined(CONFIG_MACH_XIAOMI_TULIP)
+#ifdef CONFIG_MACH_XIAOMI_TULIP
 extern bool focal_gesture_mode;
-#elif defined(CONFIG_MACH_XIAOMI_WHYRED)
-extern bool synaptics_gesture_func_on;
 #endif
 
 bool ESD_TE_status = false;
@@ -253,17 +248,10 @@ int mdss_dsi_read_reg(struct mdss_dsi_ctrl_pdata *ctrl, char cmd0, int *val0, in
 
 	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
 	*val0 = rbuf[0];
-#if defined(CONFIG_MACH_XIAOMI_LAVENDER) || defined(CONFIG_MACH_XIAOMI_TULIP)
+#if defined(CONFIG_MACH_XIAOMI_TULIP)
 	/* policy for e7t tianma nt36672a D0:x D2:y */
 	if (strstr(g_lcd_id,"tianma") != NULL)
 		*val1 = rbuf[2];
-	else {
-		/* policy for f7a ebbg nt36672a D0:x D1:y */
-		if(0 != rbuf[1])
-			*val1 = rbuf[1];
-		else
-			*val1 = rbuf[2];
-	}
 #else
 	/* policy for nt36672 */
 	if(0 != rbuf[1])
@@ -570,13 +558,6 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 
 #ifdef CONFIG_MACH_LONGCHEER
 			usleep_range(12 * 1000, 12 * 1000);
-#ifdef CONFIG_MACH_XIAOMI_LAVENDER
-			if(!enable_gesture_mode && !synaptics_gesture_enable_flag) {
-				if (gpio_direction_output(TP_RESET_GPIO, 1)) {
-					pr_err("%s: unable to set dir for touch reset gpio\n", __func__);
-				}
-			}
-#endif
 #endif
 			if (pdata->panel_info.rst_seq_len) {
 				rc = gpio_direction_output(ctrl_pdata->rst_gpio,
@@ -650,26 +631,8 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
 
-#ifdef CONFIG_MACH_XIAOMI_LAVENDER
-		if(enable_gesture_mode || synaptics_gesture_enable_flag) {
-			printk(KERN_ERR "[lcd][tp][gesture] keep lcd_reset and tp_reset gpio to high.\n");
-			goto keep_lcd_and_tp_reset;
-		}
-		if (gpio_direction_output(TP_RESET_GPIO, 0)) {
-			pr_err("%s: unable to set dir for touch reset gpio\n", __func__);
-		}
-		gpio_set_value((ctrl_pdata->rst_gpio), 0);
-keep_lcd_and_tp_reset:
-#elif defined(CONFIG_MACH_XIAOMI_TULIP)
+#ifdef CONFIG_MACH_XIAOMI_TULIP
 		printk(KERN_ERR "[lcd][tp][gesture] keep lcd_reset and tp_reset gpio to high.\n");
-#elif defined(CONFIG_MACH_XIAOMI_WAYNE)
-		if(enable_gesture_mode)
-			printk("gesture mode keep reset gpio to high.\n");
-#elif defined(CONFIG_MACH_XIAOMI_WHYRED)
-		if(enable_gesture_mode || synaptics_gesture_func_on)
-			printk("gesture mode keep reset gpio to high.\n");
-		else
-			gpio_set_value((ctrl_pdata->rst_gpio), 0);
 #else
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
 #endif
