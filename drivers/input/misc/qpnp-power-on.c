@@ -32,6 +32,9 @@
 #include <linux/regulator/of_regulator.h>
 #include <linux/input/qpnp-power-on.h>
 #include <linux/power_supply.h>
+#ifdef CONFIG_BOOT_INFO
+#include <asm/bootinfo.h>
+#endif
 
 #define PMIC_VER_8941           0x01
 #define PMIC_VERSION_REG        0x0105
@@ -66,6 +69,9 @@
 	((pon)->base + PON_OFFSET((pon)->subtype, 0xA, 0xC2))
 #define QPNP_POFF_REASON1(pon) \
 	((pon)->base + PON_OFFSET((pon)->subtype, 0xC, 0xC5))
+#ifdef CONFIG_BOOT_INFO
+#define QPNP_POFF_REASON2(pon)			((pon)->base + 0xD)
+#endif
 #define QPNP_PON_WARM_RESET_REASON2(pon)	((pon)->base + 0xB)
 #define QPNP_PON_OFF_REASON(pon)		((pon)->base + 0xC7)
 #define QPNP_FAULT_REASON1(pon)			((pon)->base + 0xC8)
@@ -630,6 +636,76 @@ int qpnp_pon_is_warm_reset(void)
 		return pon->warm_reset_reason1;
 }
 EXPORT_SYMBOL(qpnp_pon_is_warm_reset);
+
+#ifdef CONFIG_BOOT_INFO
+int qpnp_pon_is_ps_hold_reset(void)
+{
+	struct qpnp_pon *pon = sys_reset_dev;
+	int rc;
+	int reg = 0;
+
+	if (!pon)
+		return 0;
+
+	rc = regmap_read(pon->regmap, QPNP_POFF_REASON1(pon), &reg);
+	if (rc) {
+		dev_err(&pon->pdev->dev,
+				"Unable to read addr=%x, rc(%d)\n",
+				QPNP_POFF_REASON1(pon), rc);
+		return 0;
+	}
+
+	/* The bit 1 is 1, means by PS_HOLD/MSM controlled shutdown */
+	if (reg & (1<<POFF_REASON_EVENT_PS_HOLD))
+		return 1;
+
+	dev_info(&pon->pdev->dev,
+			"hw_reset reason1 is 0x%x\n",
+			reg);
+
+	rc = regmap_read(pon->regmap, QPNP_POFF_REASON2(pon), &reg);
+
+	dev_info(&pon->pdev->dev,
+			"hw_reset reason2 is 0x%x\n",
+			reg);
+	return 0;
+}
+EXPORT_SYMBOL(qpnp_pon_is_ps_hold_reset);
+
+int qpnp_pon_is_lpk(void)
+{
+	struct qpnp_pon *pon = sys_reset_dev;
+	int rc;
+	int reg = 0;
+
+	if (!pon)
+		return 0;
+
+	rc = regmap_read(pon->regmap, QPNP_POFF_REASON1(pon), &reg);
+	if (rc) {
+		dev_err(&pon->pdev->dev,
+				"Unable to read addr=%x, rc(%d)\n",
+				QPNP_POFF_REASON1(pon), rc);
+		return 0;
+	}
+
+	/* The bit 7 is 1, means the off reason is powerkey */
+	if (reg & (1<<POFF_REASON_EVENT_KPDPWR_N))
+		return 1;
+
+	dev_info(&pon->pdev->dev,
+			"hw_reset reason1 is 0x%x\n",
+			reg);
+
+	rc = regmap_read(pon->regmap, QPNP_POFF_REASON2(pon), &reg);
+
+	dev_info(&pon->pdev->dev,
+			"hw_reset reason2 is 0x%x\n",
+			reg);
+	return 0;
+}
+EXPORT_SYMBOL(qpnp_pon_is_lpk);
+#endif
 
 /**
  * qpnp_pon_wd_config - Disable the wd in a warm reset.
@@ -2169,6 +2245,9 @@ static int qpnp_pon_probe(struct platform_device *pdev)
 				"PMIC@SID%d: Power-off reason: %s\n",
 				to_spmi_device(pon->pdev->dev.parent)->usid,
 				qpnp_poff_reason[index]);
+#ifdef CONFIG_BOOT_INFO
+		set_poweroff_reason(index);
+#endif
 	}
 
 	if (pon->pon_trigger_reason == PON_SMPL ||
