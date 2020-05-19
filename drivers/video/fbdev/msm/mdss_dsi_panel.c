@@ -50,7 +50,7 @@ bool ESD_TE_status = false;
 
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 #define PANEL_DIMMING_ON_CMD 0xF00
 #define DISPLAY_OFF_MODE 0x60000
 #define DISPLAY_ON_MODE 0x70000
@@ -493,7 +493,7 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 
 	pinfo = &(ctrl_pdata->panel_data.panel_info);
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	/* For TDDI ddic panel, LCD shares reset pin with touch.
 	 * If gesture wakeup feature is enabled, the reset pin
 	 * should be controlled by touch. In this case, reset pin
@@ -643,7 +643,7 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_free(ctrl_pdata->lcd_mode_sel_gpio);
 		}
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 		/* For some TDDI ddic panel, LCD RST and TP RST need control Individually.
 		* so pull low TPRST pin after LCD RST pin pull low
 		* it should be according to panel's request
@@ -909,7 +909,7 @@ end:
 	return 0;
 }
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 static inline void mdss_panel_disparam_set(struct mdss_dsi_ctrl_pdata *ctrl, uint32_t param)
 {
 	uint32_t temp = 0;
@@ -1062,7 +1062,7 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 	if ((bl_level < pdata->panel_info.bl_min) && (bl_level != 0))
 		bl_level = pdata->panel_info.bl_min;
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	if (bl_level == 0) {
 		pr_debug("%s: set display off when bl_level=0\n", __func__);
 		mdss_panel_disparam_set(ctrl_pdata, DISPLAY_OFF_MODE);
@@ -1115,7 +1115,7 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 		break;
 	}
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	if (ctrl_pdata->bklt_level == 0 && bl_level) {
 		if (pdata->panel_info.panel_on_dimming_delay)
 			schedule_delayed_work(&ctrl_pdata->cmds_work,
@@ -1125,7 +1125,7 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 #endif
 }
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 static void panelon_dimming_enable_delayed_work(struct work_struct *work)
 {
 	struct mdss_dsi_ctrl_pdata *ctrl = container_of(work,
@@ -1190,7 +1190,7 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	if (on_cmds->cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	if (pinfo->panel_dead && pinfo->initial_esd_check.check_cmd
 		&& pinfo->initial_esd_check.check_value) {
 		memset((void *)rbuf, 0, PANEL_READ_CNT);
@@ -1217,7 +1217,7 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	/* Ensure low persistence mode is set as before */
 	mdss_dsi_panel_apply_display_setting(pdata, pinfo->persist_mode);
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	ctrl->dsi_panel_off_mode = false;
 #endif
 
@@ -1285,7 +1285,7 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	pr_debug("%s: ctrl=%pK ndx=%d\n", __func__, ctrl, ctrl->ndx);
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	cancel_delayed_work_sync(&ctrl->cmds_work);
 	cancel_delayed_work_sync(&ctrl->panel_dead_report_work);
 #endif
@@ -2302,14 +2302,14 @@ static void mdss_dsi_parse_esd_params(struct device_node *np,
 {
 	u32 tmp;
 	u32 i, status_len, *lenp;
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	u32 esd_check_cmd[ESD_CHECK_CMD];
 #endif
 	int rc;
 	struct property *data;
 	const char *string;
 	struct mdss_panel_info *pinfo = &ctrl->panel_data.panel_info;
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	enum of_gpio_flags esd_interrupt_flags = 0;
 
 	pinfo->esd_err_irq = 0;
@@ -3263,7 +3263,7 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	pinfo->mipi.force_clk_lane_hs = of_property_read_bool(np,
 		"qcom,mdss-dsi-force-clock-lane-hs");
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	mdss_dsi_parse_reset_seq(np, pinfo->tp_rst_seq, &(pinfo->tp_rst_seq_len),
 		"qcom,mdss-dsi-tp-reset-sequence");
 	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->dispparam_dimmingon_cmds,
@@ -3396,7 +3396,7 @@ int mdss_dsi_panel_init(struct device_node *node,
 	}
 
 	pinfo = &ctrl_pdata->panel_data.panel_info;
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	mdss_pinfo = pinfo;
 #endif
 
@@ -3424,7 +3424,7 @@ int mdss_dsi_panel_init(struct device_node *node,
 		return rc;
 	}
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	INIT_DELAYED_WORK(&ctrl_pdata->cmds_work, panelon_dimming_enable_delayed_work);
 	INIT_DELAYED_WORK(&ctrl_pdata->panel_dead_report_work, panel_dead_report_delayed_work);
 

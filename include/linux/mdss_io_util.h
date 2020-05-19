@@ -112,7 +112,7 @@ int mdss_i2c_byte_read(struct i2c_client *client, uint8_t slave_addr,
 		       uint8_t reg_offset, uint8_t *read_buf);
 int mdss_i2c_byte_write(struct i2c_client *client, uint8_t slave_addr,
 			uint8_t reg_offset, uint8_t *value);
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 bool mdss_panel_is_prim(void *fbinfo);
 bool mdss_prim_panel_is_dead(void);
 void mdss_panel_reset_skip_enable(bool enable);

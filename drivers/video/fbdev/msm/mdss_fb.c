@@ -48,10 +48,8 @@
 #include <linux/dma-buf.h>
 #include <sync.h>
 #include <sw_sync.h>
-#ifdef CONFIG_MACH_MI
-#include <linux/interrupt.h>
-#endif
 #ifdef CONFIG_MACH_XIAOMI_SDM660
+#include <linux/interrupt.h>
 #include <linux/wakelock.h>
 #endif
 
@@ -101,7 +99,7 @@ module_param(backlight_min, int, 0644);
 
 static struct fb_info *fbi_list[MAX_FBI_LIST];
 static int fbi_list_index;
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 static struct msm_fb_data_type *mfd_data;
 #endif
 
@@ -1298,7 +1296,7 @@ static int mdss_fb_init_panel_modes(struct msm_fb_data_type *mfd,
 	return 0;
 }
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 static irqreturn_t esd_err_irq_handle(int irq, void *data)
 {
 	struct msm_fb_data_type *mfd = data;
@@ -1496,7 +1494,7 @@ static int mdss_fb_probe(struct platform_device *pdev)
 
 	INIT_DELAYED_WORK(&mfd->idle_notify_work, __mdss_fb_idle_notify_work);
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	if (mfd->panel_info->esd_err_irq > 0) {
 		if (mfd->panel_info->esd_interrupt_flags) {
 			rc = request_threaded_irq(mfd->panel_info->esd_err_irq, NULL,
@@ -5396,7 +5394,7 @@ int mdss_fb_get_phys_info(dma_addr_t *start, unsigned long *len, int fb_num)
 }
 EXPORT_SYMBOL(mdss_fb_get_phys_info);
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 bool mdss_panel_is_prim(void *fbinfo)
 {
 	struct msm_fb_data_type *mfd;

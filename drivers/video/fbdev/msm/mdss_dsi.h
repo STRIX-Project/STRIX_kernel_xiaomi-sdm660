@@ -600,7 +600,7 @@ struct mdss_dsi_ctrl_pdata {
 	atomic_t disp_is_on;
 	atomic_t needs_wake;
 
-#ifdef CONFIG_MACH_MI
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 	bool dsi_panel_off_mode;
 	int tp_rst_gpio;
 	u32 bklt_level;
