@@ -116,3 +116,10 @@ all.config
 
 # fetched Android config fragments
 android/configs/android-*.cfg
+
+# Ignore unneeded folders
+AnyKernel/
+clang/
+out/
+toolchain32/
+toolchain64/
