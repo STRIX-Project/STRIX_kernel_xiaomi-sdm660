@@ -59,12 +59,6 @@ else
     echo "Out folder is exist, not Make"
 fi
 
-if ! [ -d "$ZIP_DIR/kernel" ]; then
-    mkdir -p $ZIP_DIR/kernel
-else
-    echo "kernel in flasher folder is exist, not Make"
-fi
-
 # Start building the kernel
 make  O=out $CONFIG $THREAD &>/dev/null
 make  O=out $THREAD & pid=$!
