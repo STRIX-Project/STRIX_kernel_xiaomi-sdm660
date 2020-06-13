@@ -26,7 +26,7 @@ fi
 
 # Clone AnyKernel
 if ! [ -d "$PWD/AnyKernel" ]; then
-    git clone git@github.com:fiqri19102002/AnyKernel3.git -b tulip-aosp-10 --depth=1 AnyKernel
+    git clone https://github.com/fiqri19102002/AnyKernel3.git -b tulip-aosp-10 --depth=1 AnyKernel
 else
     echo "AnyKernel folder is exist, not cloning"
 fi
