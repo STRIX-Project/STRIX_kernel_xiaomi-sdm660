@@ -118,7 +118,7 @@ all.config
 android/configs/android-*.cfg
 
 # Ignore unneeded folders
-AnyKernel/
+AnyKernel3/
 clang/
 out/
 toolchain32/
