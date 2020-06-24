@@ -26,15 +26,15 @@ fi
 
 # Clone AnyKernel
 if ! [ -d "$PWD/AnyKernel" ]; then
-    git clone https://github.com/fiqri19102002/AnyKernel3.git -b tulip-aosp-10 --depth=1 AnyKernel
+    git clone https://github.com/fiqri19102002/AnyKernel3.git -b tulip-aosp-10 --depth=1 AnyKernel3
 else
-    echo "AnyKernel folder is exist, not cloning"
+    echo "AnyKernel3 folder is exist, not cloning"
 fi
 
 # Main Environment
 KERNEL_DIR=$PWD
 KERN_IMG=$KERNEL_DIR/out/arch/arm64/boot/Image.gz
-ZIP_DIR=$KERNEL_DIR/AnyKernel
+ZIP_DIR=$KERNEL_DIR/AnyKernel3
 CONFIG_DIR=$KERNEL_DIR/arch/arm64/configs
 CONFIG=tulip_defconfig
 CORES=$(grep -c ^processor /proc/cpuinfo)
