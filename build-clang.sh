@@ -59,6 +59,11 @@ else
     echo "Out folder is exist, not Make"
 fi
 
+# Update AnyKernel3 source
+cd $ZIP_DIR
+git pull
+cd ..
+
 # Start building the kernel
 make  O=out $CONFIG $THREAD &>/dev/null
 make  O=out $THREAD & pid=$!
