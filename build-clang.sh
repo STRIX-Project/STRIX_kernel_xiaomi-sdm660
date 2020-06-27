@@ -65,6 +65,11 @@ cd $ZIP_DIR
 git pull
 cd ..
 
+# Update clang source
+cd $CLANG_DIR
+git pull
+cd ..
+
 # Start building the kernel
 make  O=out $CONFIG $THREAD &>/dev/null
 make  O=out $THREAD & pid=$!
