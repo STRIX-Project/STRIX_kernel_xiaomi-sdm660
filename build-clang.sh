@@ -35,6 +35,7 @@ fi
 KERNEL_DIR=$PWD
 KERN_IMG=$KERNEL_DIR/out/arch/arm64/boot/Image.gz
 ZIP_DIR=$KERNEL_DIR/AnyKernel3
+CLANG_DIR=$KERNEL_DIR/clang
 CONFIG_DIR=$KERNEL_DIR/arch/arm64/configs
 CONFIG=tulip_defconfig
 CORES=$(grep -c ^processor /proc/cpuinfo)
@@ -46,7 +47,7 @@ export SUBARCH=arm64
 export CROSS_COMPILE
 export CROSS_COMPILE="$KERNEL_DIR/toolchain64/bin/aarch64-linux-gnu-"
 export CROSS_COMPILE_ARM32="$KERNEL_DIR/toolchain32/bin/arm-eabi-"
-export CC=$KERNEL_DIR/clang/bin/clang-11
+export CC=$CLANG_DIR/bin/clang-11
 export KBUILD_COMPILER_STRING=$($CC --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 export CLANG_TREPLE=aarch64-linux-gnu-
 export KBUILD_BUILD_USER="builder"
