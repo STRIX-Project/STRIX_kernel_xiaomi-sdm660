@@ -4,7 +4,7 @@ qcom,3434695_longcheer_l6600desay_4000mah_averaged_masterslave_may2nd2018 {
 	/* #3434695_Longcheer_L6600desay_4000mAh_averaged_MasterSlave_May2nd2018*/
 	qcom,max-voltage-uv = <4408000>;
 	qcom,fg-cc-cv-threshold-mv = <4398>;
-	qcom,fastchg-current-ma = <2500>;
+	qcom,fastchg-current-ma = <2700>;
 	qcom,nom-batt-capacity-mah = <4000>;
 	qcom,batt-id-kohm = <70>;
 	qcom,battery-beta = <3435>;
