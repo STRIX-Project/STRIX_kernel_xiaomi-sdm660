@@ -349,11 +349,12 @@ static void sugov_update_single(struct update_util_data *hook, u64 time,
 		 * recently, as the reduction is likely to be premature then.
 		 */
 		if (busy && next_f < sg_policy->next_freq &&
-		    sg_policy->next_freq != UINT_MAX)
+		    sg_policy->next_freq != UINT_MAX) {
 			next_f = sg_policy->next_freq;
 			/* clear cache when it's bypassed */
 			sg_policy->cached_raw_freq = 0;
 		}
+	}
 	sugov_update_commit(sg_policy, time, next_f);
 }
 
