@@ -118,6 +118,11 @@ all.config
 # fetched Android config fragments
 android/configs/android-*.cfg
 
+#
+#Ignoring Android.bp link file
+#
+Android.bp
+
 # Ignore unneeded folders
 AnyKernel3/
 clang/
