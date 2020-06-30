@@ -303,70 +303,72 @@
 		};
 	};
 
-		energy_costs: energy-costs {
-			compatible = "sched-energy";
+	energy_costs: energy-costs {
+		compatible = "sched-energy";
 
-			CPU_COST_0: core-cost0 {
-				busy-cost-data = <
-					633600  41
-					902400  70
-					1113600 83
-					1401600 146
-					1536000 158
-					1612800 183
-					1747200 228
-					1843200 285
-				>;
-				idle-cost-data = <
-					20 16 12 8
-				>;
-			};
-			CPU_COST_1: core-cost1 {
-				busy-cost-data = <
-					1113600 307
-					1401600 485
-					1747200 857
-					1804800 883
-					1958400 1222
-					2150400 1592
-					2208000 1632
-					2457600 2080
-				>;
-				idle-cost-data = <
-					100 80 60 40
-				>;
-			};
-			CLUSTER_COST_0: cluster-cost0 {
-				busy-cost-data = <
-					633600  4
-					902400  5
-					1113600 7
-					1401600 9
-					1536000 9
-					1612800 10
-					1747200 11
-					1843200 13
-				>;
-				idle-cost-data = <
-					4 3 2 1
-				>;
-			};
-			CLUSTER_COST_1: cluster-cost1 {
-				busy-cost-data = <
-					1113600 14
-					1401600 17
-					1747200 25
-					1804800 31
-					1958400 31
-					2150400 37
-					2208000 44
-					2457600 45
-				>;
-				idle-cost-data = <
-					4 3 2 1
-				>;
-			};
+		CPU_COST_0: core-cost0 {
+			busy-cost-data = <
+			300000 10
+			633600 21
+			902400 35
+			1113600 52
+			1401600 86
+			1536000 120
+			1612800 131
+			1747200 175
+			1843200 199
+			>;
+			idle-cost-data = <
+				20 16 12 8
+			>;
 		};
+		CPU_COST_1: core-cost1 {
+			busy-cost-data = <
+			300000 268
+			1113600 1339
+			1401600 2099
+			1747200 3710
+			1804800 4010
+			1958400 5293
+			2150400 6820
+			2208000 7514
+			>;
+			idle-cost-data = <
+				100 80 60 40
+			>;
+		};
+		CLUSTER_COST_0: cluster-cost0 {
+			busy-cost-data = <
+			300000 3
+			633600 7
+			902400 11
+			1113600 17
+			1401600 27
+			1536000 38
+			1612800 39
+			1747200 49
+			1843200 57
+			>;
+			idle-cost-data = <
+				4 3 2 1
+			>;
+		};
+		CLUSTER_COST_1: cluster-cost1 {
+			busy-cost-data = <
+			300000 23
+			1113600 101
+			1401600 144
+			1747200 211
+			1804800 225
+			1958400 293
+			2150400 384
+			2208000 422
+			>;
+			idle-cost-data = <
+				4 3 2 1
+			>;
+		};
+	};
 
 	clocks {
 		xo_board {
