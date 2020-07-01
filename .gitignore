@@ -124,3 +124,8 @@ clang/
 out/
 toolchain32/
 toolchain64/
+
+#
+#Ignoring Android.bp link file
+#
+Android.bp
