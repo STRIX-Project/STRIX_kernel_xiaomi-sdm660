@@ -1,4 +1,5 @@
 /* Copyright (c) 2012-2018, 2020, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -32,7 +33,57 @@
 
 #define VSYNC_DELAY msecs_to_jiffies(17)
 
+#ifdef CONFIG_MACH_LONGCHEER
+bool tianma_jdi_flag=0;
+char g_lcd_id[128];
+struct mdss_dsi_ctrl_pdata *ctrl_pdata_whitepoint;
+EXPORT_SYMBOL(g_lcd_id);
+extern bool enable_gesture_mode;
+
+#ifdef CONFIG_MACH_XIAOMI_TULIP
+extern bool focal_gesture_mode;
+#endif
+
+bool ESD_TE_status = false;
+#endif
+
 DEFINE_LED_TRIGGER(bl_led_trigger);
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+#define PANEL_DIMMING_ON_CMD 0xF00
+#define DISPLAY_OFF_MODE 0x60000
+#define DISPLAY_ON_MODE 0x70000
+
+#define PANEL_READ_CNT    32
+#define ESD_CHECK_CMD 3
+
+static bool mdss_panel_reset_skip;
+static struct mdss_panel_info *mdss_pinfo;
+
+bool mdss_prim_panel_is_dead(void)
+{
+	if (mdss_pinfo)
+		return mdss_pinfo->panel_dead;
+	return false;
+}
+
+void mdss_panel_reset_skip_enable(bool enable)
+{
+	mdss_panel_reset_skip = enable;
+}
+
+void mdss_dsi_ulps_enable(bool enable)
+{
+	if (mdss_pinfo)
+		mdss_pinfo->ulps_feature_enabled = enable;
+}
+
+void mdss_dsi_ulps_suspend_enable(bool enable)
+{
+	if (mdss_pinfo)
+		mdss_pinfo->ulps_suspend_enabled = enable;
+}
+#endif
 
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
@@ -159,6 +210,55 @@ int mdss_dsi_panel_cmd_read(struct mdss_dsi_ctrl_pdata *ctrl, char cmd0,
 
 	return mdss_dsi_cmdlist_put(ctrl, &cmdreq);
 }
+
+#ifdef CONFIG_MACH_LONGCHEER
+static char dcs_reg[2] = {0x00, 0x00}; /* DTYPE_DCS_READ */
+static struct dsi_cmd_desc dcs_read_reg = {
+	{DTYPE_DCS_READ, 1, 0, 1, 5, sizeof(dcs_reg)},
+	dcs_reg
+};
+
+int mdss_dsi_read_reg(struct mdss_dsi_ctrl_pdata *ctrl, char cmd0, int *val0, int *val1)
+{
+	struct dcs_cmd_req cmdreq;
+	struct mdss_panel_info *pinfo;
+	char rbuf[8];
+	int len = sizeof(rbuf);
+	printk("guorui:%s,reg 0x%x\n", __func__, cmd0);
+	if(ctrl == NULL)
+		ctrl = ctrl_pdata_whitepoint;
+	pinfo = &(ctrl->panel_data.panel_info);
+	if (pinfo->dcs_cmd_by_left) {
+		if (ctrl->ndx != DSI_CTRL_LEFT)
+			return -EINVAL;
+	}
+
+	dcs_reg[0] = cmd0;
+	memset(&cmdreq, 0, sizeof(cmdreq));
+	cmdreq.cmds = &dcs_read_reg;
+	cmdreq.cmds_cnt = 1;
+	cmdreq.flags = CMD_REQ_RX | CMD_REQ_COMMIT | CMD_REQ_HS_MODE;
+	cmdreq.rlen = len;
+	cmdreq.rbuf = rbuf;
+	cmdreq.cb = NULL; /* call back */
+	/*
+	 * blocked here, until call back called
+	 */
+
+
+	mdss_dsi_cmdlist_put(ctrl, &cmdreq);
+	*val0 = rbuf[0];
+#ifdef CONFIG_MACH_XIAOMI_TULIP
+	/* policy for e7t tianma nt36672a D0:x D2:y */
+	if (strstr(g_lcd_id,"tianma") != NULL)
+		*val1 = rbuf[2];
+	else
+		*val1 = rbuf[1];
+#endif
+	printk("guorui:%x %x %x %x %x %x %x %x\n",rbuf[0],rbuf[1],rbuf[2],rbuf[3],rbuf[4],rbuf[5],rbuf[6],rbuf[7]);
+	return 0;
+}
+#endif
 
 static void mdss_dsi_panel_apply_settings(struct mdss_dsi_ctrl_pdata *ctrl,
 			struct dsi_panel_cmds *pcmds)
@@ -387,6 +487,33 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 				panel_data);
 
 	pinfo = &(ctrl_pdata->panel_data.panel_info);
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	/* For TDDI ddic panel, LCD shares reset pin with touch.
+	 * If gesture wakeup feature is enabled, the reset pin
+	 * should be controlled by touch. In this case, reset pin
+	 * would keep high state when panel is off. Meanwhile,
+	 * reset action would be done by touch when panel is on.
+	 */
+	if (mdss_panel_reset_skip && !pinfo->panel_dead) {
+		pr_info("%s: panel reset skip\n", __func__);
+		return rc;
+	}
+
+	/* For some TDDI ddic panel, LCD RST and TP RST need control Individually.
+	 * so reset TPRST pin before LCD reset
+	 * it should be according to panel's request
+	 */
+	if (pdata->panel_info.tp_rst_seq_len) {
+		for (i = 0; i < pdata->panel_info.tp_rst_seq_len; ++i) {
+			gpio_set_value((ctrl_pdata->tp_rst_gpio),
+				pdata->panel_info.tp_rst_seq[i]);
+			if (pdata->panel_info.tp_rst_seq[++i])
+				usleep_range(pinfo->tp_rst_seq[i] * 1000, pinfo->tp_rst_seq[i] * 1000);
+		}
+	}
+#endif
+
 	if ((mdss_dsi_is_right_ctrl(ctrl_pdata) &&
 		mdss_dsi_is_hw_config_split(ctrl_pdata->shared_data)) ||
 			pinfo->is_dba_panel) {
@@ -425,6 +552,9 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 				}
 			}
 
+#ifdef CONFIG_MACH_LONGCHEER
+			usleep_range(12 * 1000, 12 * 1000);
+#endif
 			if (pdata->panel_info.rst_seq_len) {
 				rc = gpio_direction_output(ctrl_pdata->rst_gpio,
 					pdata->panel_info.rst_seq[0]);
@@ -496,12 +626,27 @@ int mdss_dsi_panel_reset(struct mdss_panel_data *pdata, int enable)
 			gpio_set_value((ctrl_pdata->disp_en_gpio), 0);
 			gpio_free(ctrl_pdata->disp_en_gpio);
 		}
+#ifdef CONFIG_MACH_XIAOMI_TULIP
+		printk(KERN_ERR "[lcd][tp][gesture] keep lcd_reset and tp_reset gpio to high.\n");
+#else
 		gpio_set_value((ctrl_pdata->rst_gpio), 0);
+#endif
 		gpio_free(ctrl_pdata->rst_gpio);
 		if (gpio_is_valid(ctrl_pdata->lcd_mode_sel_gpio)) {
 			gpio_set_value(ctrl_pdata->lcd_mode_sel_gpio, 0);
 			gpio_free(ctrl_pdata->lcd_mode_sel_gpio);
 		}
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+		/* For some TDDI ddic panel, LCD RST and TP RST need control Individually.
+		* so pull low TPRST pin after LCD RST pin pull low
+		* it should be according to panel's request
+		*/
+		if (pdata->panel_info.tp_rst_seq_len) {
+			usleep_range(5000, 5000);
+			gpio_set_value((ctrl_pdata->tp_rst_gpio), 0);
+		}
+#endif
 	}
 
 exit:
@@ -758,6 +903,43 @@ end:
 	return 0;
 }
 
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+static inline void mdss_panel_disparam_set(struct mdss_dsi_ctrl_pdata *ctrl, uint32_t param)
+{
+	uint32_t temp = 0;
+
+	temp = param & 0x000F0000;
+	switch (temp) {
+	case DISPLAY_OFF_MODE:
+		if (ctrl->displayoff_cmds.cmd_cnt) {
+			pr_info("display off mode\n");
+			mdss_dsi_panel_cmds_send(ctrl, &ctrl->displayoff_cmds, CMD_REQ_COMMIT);
+		}
+		break;
+	case DISPLAY_ON_MODE:
+		if (ctrl->displayon_cmds.cmd_cnt) {
+			pr_info("display on mode\n");
+			mdss_dsi_panel_cmds_send(ctrl, &ctrl->displayon_cmds, CMD_REQ_COMMIT);
+		}
+		break;
+	default:
+		break;
+	}
+
+	temp = param & 0x00000F00;
+	switch (temp) {
+	case 0xF00:		/*dimming*/
+		if (ctrl->dispparam_dimmingon_cmds.cmd_cnt) {
+			pr_info("dimmingon\n");
+			mdss_dsi_panel_cmds_send(ctrl, &ctrl->dispparam_dimmingon_cmds, CMD_REQ_COMMIT);
+		}
+		break;
+	default:
+		break;
+	}
+}
+#endif
+
 static int mdss_dsi_panel_apply_display_setting(struct mdss_panel_data *pdata,
 							u32 mode)
 {
@@ -874,6 +1056,19 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 	if ((bl_level < pdata->panel_info.bl_min) && (bl_level != 0))
 		bl_level = pdata->panel_info.bl_min;
 
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	if (bl_level == 0) {
+		pr_debug("%s: set display off when bl_level=0\n", __func__);
+		mdss_panel_disparam_set(ctrl_pdata, DISPLAY_OFF_MODE);
+		ctrl_pdata->dsi_panel_off_mode = true;
+	} else {
+		if (ctrl_pdata->bklt_level == 0 && ctrl_pdata->dsi_panel_off_mode == true) {
+			pr_debug("%s: set display on when bklt_level=0\n", __func__);
+			mdss_panel_disparam_set(ctrl_pdata, DISPLAY_ON_MODE);
+		}
+	}
+#endif
+
 	/* enable the backlight gpio if present */
 	mdss_dsi_bl_gpio_ctrl(pdata, bl_level);
 
@@ -913,7 +1108,46 @@ static void mdss_dsi_panel_bl_ctrl(struct mdss_panel_data *pdata,
 			__func__);
 		break;
 	}
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	if (ctrl_pdata->bklt_level == 0 && bl_level) {
+		if (pdata->panel_info.panel_on_dimming_delay)
+			schedule_delayed_work(&ctrl_pdata->cmds_work,
+				msecs_to_jiffies(pdata->panel_info.panel_on_dimming_delay));
+	}
+	ctrl_pdata->bklt_level = bl_level;
+#endif
 }
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+static void panelon_dimming_enable_delayed_work(struct work_struct *work)
+{
+	struct mdss_dsi_ctrl_pdata *ctrl = container_of(work,
+				struct mdss_dsi_ctrl_pdata, cmds_work.work);
+	mdss_panel_disparam_set(ctrl, PANEL_DIMMING_ON_CMD);
+}
+
+static char rbuf[PANEL_READ_CNT];
+static void mdss_dsi_initial_read_cb(u32 cb_result)
+{
+	u32 i;
+
+	pr_info("%s: 0x%x. \n", __func__, cb_result);
+	for (i = 0; i < cb_result; i++)
+		pr_err("ESD - initial, 0A:0x%x ", rbuf[i]);
+}
+
+static void panel_dead_report_delayed_work(struct work_struct *work)
+{
+	struct mdss_dsi_ctrl_pdata *ctrl = container_of(work,
+				struct mdss_dsi_ctrl_pdata, panel_dead_report_work.work);
+
+	if (ctrl && ctrl->panel_data.panel_dead_report) {
+		pr_info("%s: panel dead at the time of unblank\n", __func__);
+		ctrl->panel_data.panel_dead_report();
+	}
+}
+#endif
 
 static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 {
@@ -950,6 +1184,24 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	if (on_cmds->cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
 
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	if (pinfo->panel_dead && pinfo->initial_esd_check.check_cmd
+		&& pinfo->initial_esd_check.check_value) {
+		memset((void *)rbuf, 0, PANEL_READ_CNT);
+		mdss_dsi_panel_cmd_read(ctrl, pinfo->initial_esd_check.check_cmd,
+			0x00, (void *)mdss_dsi_initial_read_cb, rbuf, 1);
+		if (rbuf[0] != pinfo->initial_esd_check.check_value) {
+			pr_info("%s: read panel fail, ret:%d\n", __func__, ret);
+			if (pinfo->initial_esd_check.panel_dead_report_delay)
+				schedule_delayed_work(&ctrl->panel_dead_report_work,
+					msecs_to_jiffies(pinfo->initial_esd_check.panel_dead_report_delay));
+		}
+	}
+
+	if (!pinfo->panel_on_dimming_delay)
+		mdss_panel_disparam_set(ctrl, PANEL_DIMMING_ON_CMD);
+#endif
+
 	if (pinfo->compression_mode == COMPRESSION_DSC)
 		mdss_dsi_panel_dsc_pps_send(ctrl, pinfo);
 
@@ -958,6 +1210,10 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 
 	/* Ensure low persistence mode is set as before */
 	mdss_dsi_panel_apply_display_setting(pdata, pinfo->persist_mode);
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	ctrl->dsi_panel_off_mode = false;
+#endif
 
 end:
 	pr_debug("%s:-\n", __func__);
@@ -1019,10 +1275,21 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	pr_debug("%s: ctrl=%pK ndx=%d\n", __func__, ctrl, ctrl->ndx);
 
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	cancel_delayed_work_sync(&ctrl->cmds_work);
+	cancel_delayed_work_sync(&ctrl->panel_dead_report_work);
+#endif
+
 	if (pinfo->dcs_cmd_by_left) {
 		if (ctrl->ndx != DSI_CTRL_LEFT)
 			goto end;
 	}
+
+#ifdef CONFIG_MACH_LONGCHEER
+	if (ESD_TE_status)
+		printk("%s: esd check skip lcd suspend \n", __func__);
+	else
+#endif
 
 	if (ctrl->off_cmds.cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, &ctrl->off_cmds, CMD_REQ_COMMIT);
@@ -1828,6 +2095,10 @@ static int mdss_dsi_gen_read_status(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 	if (!mdss_dsi_cmp_panel_reg_v2(ctrl_pdata)) {
 		pr_err("%s: Read back value from panel is incorrect\n",
 							__func__);
+#ifdef CONFIG_MACH_LONGCHEER
+	if ((strstr(g_lcd_id,"nt36672a") != NULL))
+		ESD_TE_status = true;
+#endif
 		return -EINVAL;
 	} else {
 		return 1;
@@ -2021,10 +2292,48 @@ static void mdss_dsi_parse_esd_params(struct device_node *np,
 {
 	u32 tmp;
 	u32 i, status_len, *lenp;
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	u32 esd_check_cmd[ESD_CHECK_CMD];
+#endif
 	int rc;
 	struct property *data;
 	const char *string;
 	struct mdss_panel_info *pinfo = &ctrl->panel_data.panel_info;
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	enum of_gpio_flags esd_interrupt_flags = 0;
+
+	pinfo->esd_err_irq = 0;
+	pinfo->esd_err_irq_gpio = of_get_named_gpio_flags(np,
+		"qcom,esd-err-irq-gpio", 0, &esd_interrupt_flags);
+	pinfo->esd_interrupt_flags = (u32)esd_interrupt_flags;
+
+	if (gpio_is_valid(pinfo->esd_err_irq_gpio)) {
+		pinfo->esd_err_irq = gpio_to_irq(pinfo->esd_err_irq_gpio);
+
+		rc = gpio_request(pinfo->esd_err_irq_gpio, "esd_err_irq_gpio");
+		if (rc) {
+			pr_err("%s: Failed to get gpio %d (code: %d)",
+				__func__, pinfo->esd_err_irq_gpio, rc);
+		} else {
+			gpio_direction_input(pinfo->esd_err_irq_gpio);
+		}
+	}
+
+	rc = of_property_read_u32_array(np, "qcom,initial-esd-check-cmd",
+		esd_check_cmd, ESD_CHECK_CMD);
+	if (rc) {
+		pr_debug("%s:%d, Unable to read reset esd check cmd\n",
+		       __func__, __LINE__);
+	} else {
+		pinfo->initial_esd_check.check_cmd = esd_check_cmd[0];
+		pinfo->initial_esd_check.check_value = esd_check_cmd[1];
+		pinfo->initial_esd_check.panel_dead_report_delay = esd_check_cmd[2];
+		pr_info("%s, initial check cmd:0x%x, check value:0x%x, delay:%d\n",
+		       __func__, pinfo->initial_esd_check.check_cmd,
+		       pinfo->initial_esd_check.check_value,
+		       pinfo->initial_esd_check.panel_dead_report_delay);
+	}
+#endif
 
 	pinfo->esd_check_enabled = of_property_read_bool(np,
 		"qcom,esd-check-enabled");
@@ -2944,6 +3253,18 @@ static int mdss_panel_parse_dt(struct device_node *np,
 	pinfo->mipi.force_clk_lane_hs = of_property_read_bool(np,
 		"qcom,mdss-dsi-force-clock-lane-hs");
 
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	mdss_dsi_parse_reset_seq(np, pinfo->tp_rst_seq, &(pinfo->tp_rst_seq_len),
+		"qcom,mdss-dsi-tp-reset-sequence");
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->dispparam_dimmingon_cmds,
+		"qcom,mdss-dsi-dispparam-dimmingon-command", "qcom,mdss-dsi-dispparam-dimmingon-command-state");
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->displayoff_cmds,
+		"qcom,mdss-dsi-displayoff-command", "qcom,mdss-dsi-displayoff-command-state");
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->displayon_cmds,
+		"qcom,mdss-dsi-displayon-command", "qcom,mdss-dsi-displayon-command-state");
+#endif
+
 	rc = mdss_dsi_parse_panel_features(np, ctrl_pdata);
 	if (rc) {
 		pr_err("%s: failed to parse panel features\n", __func__);
@@ -2985,6 +3306,70 @@ error:
 	return -EINVAL;
 }
 
+#ifdef CONFIG_MACH_LONGCHEER
+static ssize_t msm_fb_lcd_name(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	ssize_t ret = 0;
+	sprintf(buf, "%s\n", g_lcd_id);
+	ret = strlen(buf) + 1;
+	return ret;
+}
+
+static DEVICE_ATTR(lcd_name,0664,msm_fb_lcd_name,NULL);
+static struct kobject *msm_lcd_name;
+static int msm_lcd_name_create_sysfs(void)
+{
+	int ret;
+	msm_lcd_name=kobject_create_and_add("android_lcd",NULL);
+	if (msm_lcd_name == NULL) {
+		pr_info("msm_lcd_name_create_sysfs_ failed\n");
+		ret=-ENOMEM;
+		return ret;
+	}
+	ret=sysfs_create_file(msm_lcd_name,&dev_attr_lcd_name.attr);
+	if(ret){
+		pr_info("%s failed \n",__func__);
+		kobject_del(msm_lcd_name);
+	}
+	return 0;
+}
+
+
+static ssize_t mdss_fb_get_whitepoint(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
+	int val0 =0;
+	int val1 = 0;
+	ssize_t ret = 0;
+
+	mdss_dsi_read_reg(ctrl,0xa1,&val0,&val1);
+	ret = snprintf(buf, PAGE_SIZE, "val0=%d,val1=%d\n",val0,val1);
+
+	return ret;
+}
+
+static DEVICE_ATTR(whitepoint, 0644, mdss_fb_get_whitepoint,NULL );
+static struct kobject *msm_whitepoint;
+static int msm_whitepoint_create_sysfs(void)
+{
+	int ret;
+	msm_whitepoint=kobject_create_and_add("android_whitepoint",NULL);
+	if (msm_whitepoint == NULL) {
+		pr_info("msm_whitepoint_create_sysfs_ failed\n");
+		ret=-ENOMEM;
+		return ret;
+	}
+	ret=sysfs_create_file(msm_whitepoint,&dev_attr_whitepoint.attr);
+	if (ret) {
+		pr_info("%s failed \n",__func__);
+		kobject_del(msm_whitepoint);
+	}
+	return 0;
+}
+#endif
+
 int mdss_dsi_panel_init(struct device_node *node,
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata,
 	int ndx)
@@ -2999,6 +3384,9 @@ int mdss_dsi_panel_init(struct device_node *node,
 	}
 
 	pinfo = &ctrl_pdata->panel_data.panel_info;
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	mdss_pinfo = pinfo;
+#endif
 
 	pr_debug("%s:%d\n", __func__, __LINE__);
 	pinfo->panel_name[0] = '\0';
@@ -3010,11 +3398,31 @@ int mdss_dsi_panel_init(struct device_node *node,
 		pr_info("%s: Panel Name = %s\n", __func__, panel_name);
 		strlcpy(&pinfo->panel_name[0], panel_name, MDSS_MAX_PANEL_LEN);
 	}
+#ifdef CONFIG_MACH_LONGCHEER
+	if (strstr(panel_name,"tianma") == NULL)
+		tianma_jdi_flag = 1;
+	else
+                tianma_jdi_flag = 0;
+	/*add for device name node */
+	strcpy(g_lcd_id,panel_name);
+#endif
 	rc = mdss_panel_parse_dt(node, ctrl_pdata);
 	if (rc) {
 		pr_err("%s:%d panel dt parse failed\n", __func__, __LINE__);
 		return rc;
 	}
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	INIT_DELAYED_WORK(&ctrl_pdata->cmds_work, panelon_dimming_enable_delayed_work);
+	INIT_DELAYED_WORK(&ctrl_pdata->panel_dead_report_work, panel_dead_report_delayed_work);
+
+	rc = of_property_read_u32(node, "qcom,mdss-panel-on-dimming-delay", &pinfo->panel_on_dimming_delay);
+	if (rc) {
+		pinfo->panel_on_dimming_delay = 0;
+		pr_info("Panel on dimming delay disabled\n");
+	} else
+		pr_info("Panel on dimming delay %d ms\n", pinfo->panel_on_dimming_delay);
+#endif
 
 	pinfo->dynamic_switch_pending = false;
 	pinfo->is_lpm_mode = false;
@@ -3030,5 +3438,10 @@ int mdss_dsi_panel_init(struct device_node *node,
 			mdss_dsi_panel_apply_display_setting;
 	ctrl_pdata->switch_mode = mdss_dsi_panel_switch_mode;
 
+#ifdef CONFIG_MACH_LONGCHEER
+	ctrl_pdata_whitepoint = ctrl_pdata;
+	msm_lcd_name_create_sysfs();
+	msm_whitepoint_create_sysfs();
+#endif
 	return 0;
 }
