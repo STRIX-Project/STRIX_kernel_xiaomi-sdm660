@@ -100,3 +100,8 @@
 	qcom,actuator-type = "erm";
 	qcom,vmax-mv = <3000>;
 };
+
+/* sdm636.dtsi tulip specific diff */
+&msm_gpu {
+	qcom,chipid = <0x05010200>;
+};
