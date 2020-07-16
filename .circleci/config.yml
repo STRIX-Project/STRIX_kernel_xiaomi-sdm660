@@ -1,0 +1,22 @@
+version: 2.1
+jobs:
+  compile:
+   docker:
+      - image: ubuntu:20.04
+   steps:
+      - run:
+          no_output_timeout: 50m
+          command: |
+           apt-get -y update && apt-get -y upgrade && DEBIAN_FRONTEND=noninteractive apt-get -y install bc build-essential bison flex zip gcc clang libc6 curl libstdc++6 git wget libssl-dev zstd openjdk-11-jdk openjdk-11-jre
+           git clone https://github.com/STRIX-Project/STRIX_kernel_xiaomi_sdm660.git -b STRIX-EAS-tulip-rebase --depth=1 STRIX-EAS-tulip
+           cd STRIX-EAS-tulip
+           git clone https://github.com/fiqri19102002/build_script.git -b master
+           chmod +x build_script/envsetup.sh
+           chmod +x build_script/circle.sh
+           source ./build_script/envsetup.sh
+           ./build_script/circle.sh
+workflows:
+  version: 2.1
+  cooking:
+    jobs:
+      - compile
