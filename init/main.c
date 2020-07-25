@@ -503,9 +503,6 @@ asmlinkage __visible void __init start_kernel(void)
 {
 	char *command_line;
 	char *after_dashes;
-#ifdef CONFIG_MACH_LONGCHEER
-	char *p = NULL;
-#endif
 
 	/*
 	 * Need to run as early as possible, to initialize the
@@ -547,17 +544,15 @@ asmlinkage __visible void __init start_kernel(void)
 	jump_label_init();
 
 #ifdef CONFIG_MACH_LONGCHEER
-	p = NULL;
-	p = strstr(boot_command_line, "androidboot.fpsensor=fpc");
-	if (p)
+	if (strstr(boot_command_line, "androidboot.fpsensor=fpc"))
 		fpsensor = 1;
 	else
 		fpsensor = 2;
 
-	p = NULL;
-	p = strstr(boot_command_line, "androidboot.mode=charger");
-	if (p)
+	if (strstr(boot_command_line, "androidboot.mode=charger"))
 		is_poweroff_charge = true;
+	else
+		is_poweroff_charge = false;
 #endif
 
 	parse_early_param();
