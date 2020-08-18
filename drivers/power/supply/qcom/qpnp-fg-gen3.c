@@ -1134,12 +1134,12 @@ static int fg_get_batt_profile(struct fg_chip *chip)
 
 #ifdef CONFIG_MACH_LONGCHEER
 	if (hwc_check_global)
-		chip->bp.fastchg_curr_ma = 2300;
+		chip->bp.fastchg_curr_ma = 2900;
 #ifdef CONFIG_MACH_XIAOMI_TULIP
 	else
 		if (is_poweroff_charge) {
 			if (hwc_check_india)
-				chip->bp.fastchg_curr_ma = 2200;
+				chip->bp.fastchg_curr_ma = 2300;
 			else
 				chip->bp.fastchg_curr_ma = 2300;
 		}
