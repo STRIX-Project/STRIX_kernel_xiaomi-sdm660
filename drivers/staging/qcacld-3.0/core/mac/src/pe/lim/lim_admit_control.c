@@ -188,9 +188,10 @@ lim_validate_tspec(tpAniSirGlobal pMac,
 	switch (pTspec->tsinfo.traffic.accessPolicy) {
 	case SIR_MAC_ACCESSPOLICY_EDCA:
 		retval = lim_validate_tspec_edca(pMac, pTspec, psessionEntry);
-		if (retval != eSIR_SUCCESS)
+		if (retval != eSIR_SUCCESS) {
 			pe_warn("EDCA tspec invalid");
 			break;
+		}
 
 	case SIR_MAC_ACCESSPOLICY_HCCA:
 	case SIR_MAC_ACCESSPOLICY_BOTH:
@@ -351,9 +352,10 @@ static tSirRetStatus lim_admit_policy(tpAniSirGlobal pMac,
 							   admitPolicyInfo,
 							   &pMac->lim.tspecInfo[0],
 							   psessionEntry);
-		if (retval != eSIR_SUCCESS)
+		if (retval != eSIR_SUCCESS) {
 			pe_err("rejected by BWFactor policy");
 			break;
+		}
 
 	case WNI_CFG_ADMIT_POLICY_REJECT_ALL:
 		retval = eSIR_FAILURE;
@@ -630,10 +632,11 @@ lim_validate_access_policy(tpAniSirGlobal pMac,
 		break;
 	}
 
-	if (retval != eSIR_SUCCESS)
+	if (retval != eSIR_SUCCESS) {
 		pe_warn("accPol: %d staId: %d lle: %d wme: %d wsm: %d",
 			accessPolicy, pSta->staIndex, pSta->lleEnabled,
 			pSta->wmeEnabled, pSta->wsmEnabled);
+	}
 
 	return retval;
 }
