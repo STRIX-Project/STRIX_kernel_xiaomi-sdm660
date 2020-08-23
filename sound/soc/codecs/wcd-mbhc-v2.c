@@ -1,4 +1,5 @@
 /* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,6 +27,9 @@
 #include <linux/firmware.h>
 #include <linux/completion.h>
 #include <linux/mfd/msm-cdc-pinctrl.h>
+#ifdef CONFIG_MACH_LONGCHEER
+#include <linux/switch.h>
+#endif
 #include <sound/soc.h>
 #include <sound/jack.h>
 #include "wcd-mbhc-v2.h"
@@ -51,11 +55,25 @@
 #define FAKE_REM_RETRY_ATTEMPTS 3
 #define MAX_IMPED 60000
 
+#ifdef CONFIG_MACH_XIAOMI_WAYNE
+#define WCD_MBHC_BTN_PRESS_COMPL_TIMEOUT_MS  650
+#else
 #define WCD_MBHC_BTN_PRESS_COMPL_TIMEOUT_MS  50
+#endif
 #define ANC_DETECT_RETRY_CNT 7
 #define WCD_MBHC_SPL_HS_CNT  1
 
+#ifdef CONFIG_MACH_LONGCHEER
+/* Add for get headset state tsx 10/19 */
+struct switch_dev sdev;
+#endif
 static int det_extn_cable_en;
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+/*Add for selfie stick not work  tangshouxing 9/6*/
+static void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,
+			enum wcd_mbhc_plug_type plug_type);
+#endif
+
 module_param(det_extn_cable_en, int,
 		S_IRUGO | S_IWUSR | S_IWGRP);
 MODULE_PARM_DESC(det_extn_cable_en, "enable/disable extn cable detect");
@@ -613,6 +631,10 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 
 	pr_debug("%s: enter insertion %d hph_status %x\n",
 		 __func__, insertion, mbhc->hph_status);
+#ifdef CONFIG_MACH_LONGCHEER
+	/* Add for get headset state tsx 10/19 */
+	switch_set_state(&sdev,insertion);
+#endif
 	if (!insertion) {
 		/* Report removal */
 		mbhc->hph_status &= ~jack_type;
@@ -657,6 +679,9 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 		hphrocp_off_report(mbhc, SND_JACK_OC_HPHR);
 		hphlocp_off_report(mbhc, SND_JACK_OC_HPHL);
 		mbhc->current_plug = MBHC_PLUG_TYPE_NONE;
+#ifdef CONFIG_MACH_LONGCHEER
+		mbhc->force_linein = false;
+#endif
 	} else {
 		/*
 		 * Report removal of current jack type.
@@ -712,6 +737,9 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 						SND_JACK_LINEOUT |
 						SND_JACK_ANC_HEADPHONE |
 						SND_JACK_UNSUPPORTED);
+#ifdef CONFIG_MACH_LONGCHEER
+			mbhc->force_linein = false;
+#endif
 		}
 
 		if (mbhc->current_plug == MBHC_PLUG_TYPE_HEADSET &&
@@ -740,12 +768,34 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 			(!is_pa_on)) {
 				mbhc->mbhc_cb->compute_impedance(mbhc,
 						&mbhc->zl, &mbhc->zr);
+#ifdef CONFIG_MACH_LONGCHEER
+			if ((jack_type == SND_JACK_UNSUPPORTED) &&
+				   mbhc->zl > 20000 &&
+				   mbhc->zr > 20000) {
+				mbhc->current_plug = MBHC_PLUG_TYPE_HEADSET;
+				mbhc->jiffies_atreport = jiffies;
+				jack_type = SND_JACK_HEADSET;
+				if (mbhc->hph_status) {
+					mbhc->hph_status &= ~(SND_JACK_LINEOUT |
+							SND_JACK_HEADPHONE |
+							SND_JACK_ANC_HEADPHONE |
+							SND_JACK_UNSUPPORTED);
+					wcd_mbhc_jack_report(mbhc,
+							&mbhc->headset_jack,
+							mbhc->hph_status,
+							WCD_MBHC_JACK_MASK);
+				}
+			}
+#else
 			if ((mbhc->zl > mbhc->mbhc_cfg->linein_th &&
 				mbhc->zl < MAX_IMPED) &&
 				(mbhc->zr > mbhc->mbhc_cfg->linein_th &&
 				 mbhc->zr < MAX_IMPED) &&
 				(jack_type == SND_JACK_HEADPHONE)) {
 				jack_type = SND_JACK_LINEOUT;
+#ifdef CONFIG_MACH_LONGCHEER
+				mbhc->force_linein = true;
+#endif
 				mbhc->current_plug = MBHC_PLUG_TYPE_HIGH_HPH;
 				if (mbhc->hph_status) {
 					mbhc->hph_status &= ~(SND_JACK_HEADSET |
@@ -759,6 +809,7 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 				pr_debug("%s: Marking jack type as SND_JACK_LINEOUT\n",
 				__func__);
 			}
+#endif
 		}
 
 		mbhc->hph_status |= jack_type;
@@ -887,7 +938,34 @@ static void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
 						SND_JACK_HEADPHONE);
 			if (mbhc->current_plug == MBHC_PLUG_TYPE_HEADSET)
 				wcd_mbhc_report_plug(mbhc, 0, SND_JACK_HEADSET);
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+			/*
+			 * calculate impedance detection
+			 * If Zl and Zr > 20k then it is special accessory
+			 * otherwise unsupported cable.
+			 */
+			/*Add for selfie stick not work  tangshouxing 9/6*/
+			if (mbhc->impedance_detect) {
+				mbhc->mbhc_cb->compute_impedance(mbhc,
+					&mbhc->zl, &mbhc->zr);
+				if ((mbhc->zl > 20000) && (mbhc->zr > 20000)) {
+					pr_debug("%s: special accessory \n", __func__);
+					/* Toggle switch back */
+					if (mbhc->mbhc_cfg->swap_gnd_mic &&
+						mbhc->mbhc_cfg->swap_gnd_mic(mbhc->codec)) {
+						pr_debug("%s: US_EU gpio present,flip switch again\n"
+							, __func__);
+					}
+					/* enable CS/MICBIAS for headset button detection to work */
+					wcd_enable_mbhc_supply(mbhc, MBHC_PLUG_TYPE_HEADSET);
+					wcd_mbhc_report_plug(mbhc, 1, SND_JACK_HEADSET);
+				} else {
+					 wcd_mbhc_report_plug(mbhc, 1, SND_JACK_UNSUPPORTED);
+				}
+			}
+#else
 		wcd_mbhc_report_plug(mbhc, 1, SND_JACK_UNSUPPORTED);
+#endif
 	} else if (plug_type == MBHC_PLUG_TYPE_HEADSET) {
 		if (mbhc->mbhc_cfg->enable_anc_mic_detect)
 			anc_mic_found = wcd_mbhc_detect_anc_plug_type(mbhc);
@@ -903,6 +981,27 @@ static void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
 		wcd_mbhc_report_plug(mbhc, 1, jack_type);
 	} else if (plug_type == MBHC_PLUG_TYPE_HIGH_HPH) {
 		if (mbhc->mbhc_cfg->detect_extn_cable) {
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+			/*Add for selfie stick not work  tangshouxing 9/6*/
+			if (mbhc->impedance_detect) {
+				mbhc->mbhc_cb->compute_impedance(mbhc,
+					&mbhc->zl, &mbhc->zr);
+				if ((mbhc->zl > 20000) && (mbhc->zr > 20000)) {
+					pr_debug("tsx_hph_%s: special accessory \n", __func__);
+					/* Toggle switch back */
+					if (mbhc->mbhc_cfg->swap_gnd_mic &&
+						mbhc->mbhc_cfg->swap_gnd_mic(mbhc->codec)) {
+						pr_debug("%s: US_EU gpio present,flip switch again\n"
+							, __func__);
+					}
+					/* enable CS/MICBIAS for headset button detection to work */
+					wcd_enable_mbhc_supply(mbhc, MBHC_PLUG_TYPE_HEADSET);
+					wcd_mbhc_report_plug(mbhc, 1, SND_JACK_HEADSET);
+				} else {
+					wcd_mbhc_report_plug(mbhc, 1, SND_JACK_LINEOUT);
+				}
+			} else {
+#endif
 			/* High impedance device found. Report as LINEOUT */
 			wcd_mbhc_report_plug(mbhc, 1, SND_JACK_LINEOUT);
 			pr_debug("%s: setup mic trigger for further detection\n",
@@ -922,6 +1021,9 @@ static void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
 						 3);
 			wcd_mbhc_hs_elec_irq(mbhc, WCD_MBHC_ELEC_HS_INS,
 					     true);
+#ifdef CONFIG_MACH_LONGCHEER
+			}
+#endif
 		} else {
 			wcd_mbhc_report_plug(mbhc, 1, SND_JACK_LINEOUT);
 		}
@@ -1051,6 +1153,24 @@ static bool wcd_is_special_headset(struct wcd_mbhc *mbhc)
 					__func__);
 			break;
 		}
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+		/*Add for selfie stick not work  tangshouxing 9/6*/
+		if (mbhc->impedance_detect) {
+			mbhc->mbhc_cb->compute_impedance(mbhc,
+				&mbhc->zl, &mbhc->zr);
+			if ((mbhc->zl > 20000) && (mbhc->zr > 20000)) {
+				pr_debug("%s: Selfie stick detected\n",__func__);
+				break;
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+			} else if ((mbhc->zl < 64) && (mbhc->zr > 20000)) {
+				ret = true;
+				mbhc->micbias_enable = true;
+				pr_debug("%s: Maybe special headset detected\n",__func__);
+				break;
+#endif
+			}
+		}
+#endif
 	}
 	if (is_spl_hs) {
 		pr_debug("%s: Headset with threshold found\n",  __func__);
@@ -1132,7 +1252,11 @@ static void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,
 							WCD_MBHC_EN_PULLUP);
 			else
 				wcd_enable_curr_micbias(mbhc,
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+							WCD_MBHC_EN_MB); /*change to vol source tsx 9/13*/
+#else
 							WCD_MBHC_EN_CS);
+#endif
 		} else if (plug_type == MBHC_PLUG_TYPE_HEADPHONE) {
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
 		} else {
@@ -1193,7 +1317,9 @@ static void wcd_correct_swch_plug(struct work_struct *work)
 	struct wcd_mbhc *mbhc;
 	struct snd_soc_codec *codec;
 	enum wcd_mbhc_plug_type plug_type = MBHC_PLUG_TYPE_INVALID;
+#ifndef CONFIG_MACH_LONGCHEER
 	unsigned long timeout;
+#endif
 	u16 hs_comp_res = 0, hphl_sch = 0, mic_sch = 0, btn_result = 0;
 	bool wrk_complete = false;
 	int pt_gnd_mic_swap_cnt = 0;
@@ -1205,6 +1331,9 @@ static void wcd_correct_swch_plug(struct work_struct *work)
 	int rc, spl_hs_count = 0;
 	int cross_conn;
 	int try = 0;
+#ifdef CONFIG_MACH_LONGCHEER
+	int iRetryCount;
+#endif
 
 	pr_debug("%s: enter\n", __func__);
 
@@ -1276,8 +1405,12 @@ static void wcd_correct_swch_plug(struct work_struct *work)
 
 correct_plug_type:
 
+#ifndef CONFIG_MACH_LONGCHEER
 	timeout = jiffies + msecs_to_jiffies(HS_DETECT_PLUG_TIME_MS);
 	while (!time_after(jiffies, timeout)) {
+#else
+	for (iRetryCount = 0; iRetryCount < 5; iRetryCount++) {
+#endif
 		if (mbhc->hs_detect_work_stop) {
 			pr_debug("%s: stop requested: %d\n", __func__,
 					mbhc->hs_detect_work_stop);
@@ -1439,6 +1572,12 @@ correct_plug_type:
 	if (!wrk_complete && mbhc->btn_press_intr) {
 		pr_debug("%s: Can be slow insertion of headphone\n", __func__);
 		wcd_cancel_btn_work(mbhc);
+#ifdef CONFIG_MACH_LONGCHEER
+		/* Report as headphone only if previously
+		 * not reported as lineout
+		 */
+		if (!mbhc->force_linein)
+#endif
 		plug_type = MBHC_PLUG_TYPE_HEADPHONE;
 	}
 	/*
@@ -1449,6 +1588,9 @@ correct_plug_type:
 	    (plug_type == MBHC_PLUG_TYPE_ANC_HEADPHONE))) {
 		pr_debug("%s: plug_type:0x%x already reported\n",
 			 __func__, mbhc->current_plug);
+#ifdef CONFIG_MACH_LONGCHEER
+		if (mbhc->current_plug != MBHC_PLUG_TYPE_NONE)
+#endif
 		goto enable_supply;
 	}
 
@@ -1479,10 +1621,34 @@ report:
 	wcd_mbhc_find_plug_and_report(mbhc, plug_type);
 	WCD_MBHC_RSC_UNLOCK(mbhc);
 enable_supply:
+#ifdef CONFIG_MACH_LONGCHEER
+	WCD_MBHC_RSC_LOCK(mbhc);
+#endif
 	if (mbhc->mbhc_cb->mbhc_micbias_control)
 		wcd_mbhc_update_fsm_source(mbhc, plug_type);
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+	else {
+		/*Add for selfie stick not work  tangshouxing 9/6*/
+		if (mbhc->impedance_detect) {
+			mbhc->mbhc_cb->compute_impedance(mbhc,
+			&mbhc->zl, &mbhc->zr);
+				if ((mbhc->zl > 20000) && (mbhc->zr > 20000)) {
+					pr_debug("%s:Selfie stick device,need enable btn isrc ctrl",__func__);
+					wcd_enable_mbhc_supply(mbhc, MBHC_PLUG_TYPE_HEADSET);
+				} else {
+					wcd_enable_mbhc_supply(mbhc, plug_type);
+				}
+		} else {
+			wcd_enable_mbhc_supply(mbhc, plug_type);
+		}
+	}
+#else
 	else
 		wcd_enable_mbhc_supply(mbhc, plug_type);
+#endif
+#ifdef CONFIG_MACH_LONGCHEER
+	WCD_MBHC_RSC_UNLOCK(mbhc);
+#endif
 exit:
 	if (mbhc->mbhc_cb->mbhc_micbias_control &&
 	    !mbhc->micbias_enable)
@@ -1883,7 +2049,22 @@ static irqreturn_t wcd_mbhc_hs_rem_irq(int irq, void *data)
 			 * extension cable is still plugged in
 			 * report it as LINEOUT device
 			 */
+#ifdef CONFIG_MACH_LONGCHEER
+			if (!(hphl_sch && mic_sch)) {
+			/*
+			 * Maybe special headset,not allow report headphone
+			 */
+				pr_debug("%s: Maybe headset plug in,r1=%d,r2=%d\n",
+						__func__, mbhc->zr, mbhc->zl);
+				if (((mbhc->zl < 64) && (mbhc->zr < 64)) || 
+				    ((mbhc->zl < 64) && (mbhc->zr > 20000)))
+					goto exit;
+				else
+					goto report_unplug;
+			} else
+#endif
 			goto report_unplug;
+
 		} else {
 			if (!mic_sch) {
 				mic_trigerred++;
@@ -2192,6 +2373,13 @@ static int wcd_mbhc_initialise(struct wcd_mbhc *mbhc)
 
 	pr_debug("%s: enter\n", __func__);
 	WCD_MBHC_RSC_LOCK(mbhc);
+
+#ifdef CONFIG_MACH_LONGCHEER
+	/* Add for get headset state tsx 10/19 */
+	sdev.name = "h2w";
+	if (switch_dev_register(&sdev) < 0)
+		pr_err("%s,register headset switch fail\n", __func__);
+#endif
 
 	/* enable HS detection */
 	if (mbhc->mbhc_cb->hph_pull_up_control)
