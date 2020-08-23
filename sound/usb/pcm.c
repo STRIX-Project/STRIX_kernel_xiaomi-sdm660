@@ -492,6 +492,10 @@ static int set_sync_endpoint(struct snd_usb_substream *subs,
 	return 0;
 }
 
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+extern void kick_usbpd_vbus_sm(void);
+#endif
+
 /*
  * find a matching format and set up the interface
  */
@@ -540,6 +544,10 @@ static int set_format(struct snd_usb_substream *subs, struct audioformat *fmt)
 			dev_err(&dev->dev,
 				"%d:%d: usb_set_interface failed (%d)\n",
 				fmt->iface, fmt->altsetting, err);
+#ifdef CONFIG_MACH_XIAOMI_SDM660
+			if ((0x2717 == USB_ID_VENDOR(subs->stream->chip->usb_id))&&(0x3801 == USB_ID_PRODUCT(subs->stream->chip->usb_id)))
+				kick_usbpd_vbus_sm();
+#endif
 			return -EIO;
 		}
 		dev_dbg(&dev->dev, "setting usb interface %d:%d\n",
