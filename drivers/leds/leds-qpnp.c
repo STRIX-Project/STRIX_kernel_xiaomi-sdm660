@@ -179,6 +179,7 @@
 #define RGB_LED_ENABLE_RED		0x80
 #define RGB_LED_ENABLE_GREEN		0x40
 #define RGB_LED_ENABLE_BLUE		0x20
+#define RGB_LED_ENABLE_WHITE	0x80
 #define RGB_LED_SOURCE_VPH_PWR		0x01
 #define RGB_LED_ENABLE_MASK		0xE0
 #define RGB_LED_SRC_MASK		0x03
@@ -262,6 +263,7 @@ enum qpnp_leds {
 	QPNP_ID_RGB_RED,
 	QPNP_ID_RGB_GREEN,
 	QPNP_ID_RGB_BLUE,
+	QPNP_ID_RGB_WHITE,
 	QPNP_ID_LED_MPP,
 	QPNP_ID_KPDBL,
 	QPNP_ID_LED_GPIO,
@@ -1831,6 +1833,7 @@ static void __qpnp_led_work(struct qpnp_led_data *led,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		rc = qpnp_rgb_set(led);
 		if (rc < 0)
 			dev_err(&led->pdev->dev,
@@ -1887,6 +1890,7 @@ static int qpnp_led_set_max_brightness(struct qpnp_led_data *led)
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		led->cdev.max_brightness = RGB_MAX_LEVEL;
 		break;
 	case QPNP_ID_LED_MPP:
@@ -2198,6 +2202,7 @@ static ssize_t pwm_us_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		pwm_cfg = led->rgb_cfg->pwm_cfg;
 		break;
 	case QPNP_ID_KPDBL:
@@ -2258,6 +2263,7 @@ static ssize_t pause_lo_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		pwm_cfg = led->rgb_cfg->pwm_cfg;
 		break;
 	case QPNP_ID_KPDBL:
@@ -2319,6 +2325,7 @@ static ssize_t pause_hi_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		pwm_cfg = led->rgb_cfg->pwm_cfg;
 		break;
 	case QPNP_ID_KPDBL:
@@ -2380,6 +2387,7 @@ static ssize_t start_idx_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		pwm_cfg = led->rgb_cfg->pwm_cfg;
 		break;
 	case QPNP_ID_KPDBL:
@@ -2442,6 +2450,7 @@ static ssize_t ramp_step_ms_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		pwm_cfg = led->rgb_cfg->pwm_cfg;
 		break;
 	case QPNP_ID_KPDBL:
@@ -2503,6 +2512,7 @@ static ssize_t lut_flags_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		pwm_cfg = led->rgb_cfg->pwm_cfg;
 		break;
 	case QPNP_ID_KPDBL:
@@ -2567,6 +2577,7 @@ static ssize_t duty_pcts_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		pwm_cfg = led->rgb_cfg->pwm_cfg;
 		max_duty_pcts = PWM_LUT_MAX_SIZE;
 		break;
@@ -2668,7 +2679,7 @@ static void led_blink(struct qpnp_led_data *led,
 		}
 		qpnp_pwm_init(pwm_cfg, led->pdev, led->cdev.name);
 		if (led->id == QPNP_ID_RGB_RED || led->id == QPNP_ID_RGB_GREEN
-				|| led->id == QPNP_ID_RGB_BLUE) {
+				|| led->id == QPNP_ID_RGB_BLUE || led->id == QPNP_ID_RGB_WHITE ) {
 			rc = qpnp_rgb_set(led);
 			if (rc < 0)
 				dev_err(&led->pdev->dev,
@@ -2710,6 +2721,7 @@ static ssize_t blink_store(struct device *dev,
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		led_blink(led, led->rgb_cfg->pwm_cfg);
 		break;
 	case QPNP_ID_KPDBL:
@@ -3065,6 +3077,7 @@ static int qpnp_led_initialize(struct qpnp_led_data *led)
 	case QPNP_ID_RGB_RED:
 	case QPNP_ID_RGB_GREEN:
 	case QPNP_ID_RGB_BLUE:
+	case QPNP_ID_RGB_WHITE:
 		rc = qpnp_rgb_init(led);
 		if (rc)
 			dev_err(&led->pdev->dev,
@@ -3660,6 +3673,8 @@ static int qpnp_get_config_rgb(struct qpnp_led_data *led,
 		led->rgb_cfg->enable = RGB_LED_ENABLE_GREEN;
 	else if (led->id == QPNP_ID_RGB_BLUE)
 		led->rgb_cfg->enable = RGB_LED_ENABLE_BLUE;
+	else if (led->id == QPNP_ID_RGB_WHITE)
+		led->rgb_cfg->enable = RGB_LED_ENABLE_WHITE;
 	else
 		return -EINVAL;
 
@@ -4075,6 +4090,7 @@ static int qpnp_leds_probe(struct platform_device *pdev)
 			}
 		} else if ((led->id == QPNP_ID_RGB_RED) ||
 			(led->id == QPNP_ID_RGB_GREEN) ||
+			(led->id == QPNP_ID_RGB_WHITE) ||
 			(led->id == QPNP_ID_RGB_BLUE)) {
 			if (led->rgb_cfg->pwm_cfg->mode == PWM_MODE) {
 				rc = sysfs_create_group(&led->cdev.dev->kobj,
@@ -4182,6 +4198,7 @@ static int qpnp_leds_remove(struct platform_device *pdev)
 		case QPNP_ID_RGB_RED:
 		case QPNP_ID_RGB_GREEN:
 		case QPNP_ID_RGB_BLUE:
+		case QPNP_ID_RGB_WHITE:
 			if (led_array[i].rgb_cfg->pwm_cfg->mode == PWM_MODE)
 				sysfs_remove_group(&led_array[i].cdev.dev->kobj,
 							&pwm_attr_group);
