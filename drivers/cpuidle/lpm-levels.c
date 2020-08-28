@@ -1451,10 +1451,10 @@ bool psci_enter_sleep(struct lpm_cluster *cluster, int idx, bool from_idle)
 		success = !arm_cpuidle_suspend(state_id);
 		start_critical_timings();
 
-	if (from_idle && ((cpu_level->use_bc_timer)||(idx >= cluster->min_child_level))) 
-		tick_broadcast_exit();
-
-		return success;
+		if (from_idle && ((cpu_level->use_bc_timer)||(idx >= cluster->min_child_level))) {
+			tick_broadcast_exit();
+			return success;
+		}
 	}
 }
 #elif defined(CONFIG_ARM_PSCI)
