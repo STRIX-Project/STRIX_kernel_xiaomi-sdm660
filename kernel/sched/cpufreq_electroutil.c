@@ -925,9 +925,10 @@ static int eugov_exit(struct cpufreq_policy *policy)
 
 	count = gov_attr_set_put(&tunables->attr_set, &eg_policy->tunables_hook);
 	policy->governor_data = NULL;
-	if (!count)
+	if (!count) {
 		eugov_tunables_save(policy, tunables);
 		eugov_tunables_free(tunables);
+	}
 
 	mutex_unlock(&global_tunables_lock);
 
