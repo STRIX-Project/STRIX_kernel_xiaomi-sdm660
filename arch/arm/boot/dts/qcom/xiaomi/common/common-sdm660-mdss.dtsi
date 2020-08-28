@@ -43,7 +43,7 @@
 		25 1f 09 0a 06 03 04 a0
 		25 1f 09 0a 06 03 04 a0
 		25 1e 08 0a 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -53,7 +53,7 @@
 		25 1f 09 0a 06 03 04 a0
 		25 1f 09 0a 06 03 04 a0
 		25 1e 08 0a 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -63,7 +63,7 @@
 		25 1f 09 0a 06 03 04 a0
 		25 1f 09 0a 06 03 04 a0
 		25 1e 08 0a 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -73,7 +73,7 @@
 		25 1f 09 0a 06 03 04 a0
 		25 1f 09 0a 06 03 04 a0
 		25 1f 08 0a 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -83,7 +83,7 @@
 		25 1f 09 0a 06 03 04 a0
 		25 1f 09 0a 06 03 04 a0
 		25 1e 08 0a 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -93,7 +93,7 @@
                26 21 09 0b 06 03 04 a0
                26 21 09 0b 06 03 04 a0
                26 20 0a 0b 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -103,7 +103,7 @@
                26 21 09 0b 06 03 04 a0
                26 21 09 0b 06 03 04 a0
                26 20 0a 0b 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -113,7 +113,7 @@
                26 21 09 0b 06 03 04 a0
                26 21 09 0b 06 03 04 a0
                26 20 0a 0b 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -123,7 +123,7 @@
                26 21 09 0b 06 03 04 a0
                26 21 09 0b 06 03 04 a0
                26 20 0a 0b 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -133,7 +133,7 @@
                26 21 09 0b 06 03 04 a0
                26 21 09 0b 06 03 04 a0
                26 20 0a 0b 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
 
@@ -143,6 +143,6 @@
                 26 21 09 0b 06 03 04 a0
                 26 21 09 0b 06 03 04 a0
                 26 20 0a 0b 06 03 04 a0];
-	qcom,mdss-dsi-min-refresh-rate = <48>;
+	qcom,mdss-dsi-min-refresh-rate = <30>;
 	qcom,mdss-dsi-max-refresh-rate = <60>;
 };
