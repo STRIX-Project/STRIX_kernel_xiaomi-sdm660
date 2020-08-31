@@ -40,24 +40,22 @@ static irqreturn_t ant_interrupt(int irq, void *data)
 
 	ant_gpio = gpio_get_value_cansleep(ant_info->irq_gpio);
 	pr_err("Macle irq interrupt gpio = %d\n", ant_gpio);
-	if(ant_gpio == ant_info->ant_check_state){
+	if(ant_gpio == ant_info->ant_check_state) {
 		return IRQ_HANDLED;
-	}else{
+	} else {
 		ant_info->ant_check_state = ant_gpio;
 		pr_err("Macle report key s ");
 	}
 	if (ant_gpio) {
-			input_report_key(ant_info->ipdev, KEY_ANT_CONNECT, 1);
-			input_report_key(ant_info->ipdev, KEY_ANT_CONNECT, 0);
-			input_sync(ant_info->ipdev);
-	}else{
-			input_report_key(ant_info->ipdev, KEY_ANT_UNCONNECT, 1);
-			input_report_key(ant_info->ipdev, KEY_ANT_UNCONNECT, 0);
-			input_sync(ant_info->ipdev);
+		input_report_key(ant_info->ipdev, KEY_ANT_CONNECT, 1);
+		input_report_key(ant_info->ipdev, KEY_ANT_CONNECT, 0);
+		input_sync(ant_info->ipdev);
+	} else {
+		input_report_key(ant_info->ipdev, KEY_ANT_UNCONNECT, 1);
+		input_report_key(ant_info->ipdev, KEY_ANT_UNCONNECT, 0);
+		input_sync(ant_info->ipdev);
 	}
-
-
-     return IRQ_HANDLED;
+	return IRQ_HANDLED;
 }
 
 static int ant_parse_dt(struct device *dev, struct ant_check_info *pdata)
@@ -73,20 +71,20 @@ static int ant_parse_dt(struct device *dev, struct ant_check_info *pdata)
 	return 0;
 }
 
-
 #ifdef CONFIG_ANT_SYS
 static ssize_t ant_state_show(struct class *class,
 		struct class_attribute *attr, char *buf)
 {	
 	int state;
-	if (global_ant_info->ant_check_state) {
+	if (global_ant_info->ant_check_state)
 		state = 3;
-	}else{
+	else
 		state = 2;
-	}
+
 	pr_err("Macle ant_state_show state = %d, custome_state=%d\n", global_ant_info->ant_check_state, state);
 	return sprintf(buf, "%d\n", state);
 }
+
 #ifdef CONFIG_MACH_XIAOMI_WAYNE
 static ssize_t ant_state_store(struct class *class,
 				struct class_attribute *attr, 
@@ -102,7 +100,7 @@ static ssize_t ant_state_store(struct class *class,
 	if (state == 0) {
 		disable_irq(global_ant_info->irq);
 		printk("property disable ant_irq");
-	}else{
+	} else {
 		enable_irq(global_ant_info->irq);
 		printk("property enable ant_irq");
 	}
@@ -156,14 +154,14 @@ static int ant_probe(struct platform_device *pdev)
 			dev_err(&pdev->dev, "Macle ant_probe DT parsing failed\n");
 			goto free_struct;
 		}
-	} else{
+	} else {
 		return -ENOMEM;
 	}
 	mutex_init(&ant_info->io_lock);
 
 	platform_set_drvdata(pdev, ant_info);
 
-/*input system config*/
+	/* input system config */
 	ant_info->ipdev = input_allocate_device();
 	if (!ant_info->ipdev) {
 		pr_err("ant_probe: input_allocate_device fail\n");
@@ -178,22 +176,19 @@ static int ant_probe(struct platform_device *pdev)
 		pr_err("ant_probe: input_register_device fail rc=%d\n", rc);
 		goto input_error;
 	}
-
-
 	
-	
-/*interrupt config*/
+	/* interrupt config */
 	if (gpio_is_valid(ant_info->irq_gpio)) {
 		rc = gpio_request(ant_info->irq_gpio, "ant_check");
 		if (rc < 0) {
-		        pr_err("ant_probe: gpio_request fail rc=%d\n", rc);
-		        goto free_input_device;
+			pr_err("ant_probe: gpio_request fail rc=%d\n", rc);
+			goto free_input_device;
 		}
 
 		rc = gpio_direction_input(ant_info->irq_gpio);
 		if (rc < 0) {
-		        pr_err("ant_probe: gpio_direction_input fail rc=%d\n", rc);
-		        goto err_irq;
+			pr_err("ant_probe: gpio_direction_input fail rc=%d\n", rc);
+			goto err_irq;
 		}
 		ant_info->ant_check_state = gpio_get_value(ant_info->irq_gpio);
 		pr_err("ant_probe: gpios = %d, gpion=%d\n", ant_info->ant_check_state, ant_info->ant_check_state);
@@ -218,7 +213,7 @@ static int ant_probe(struct platform_device *pdev)
 		device_init_wakeup(&pdev->dev, true);
 		irq_set_irq_wake(ant_info->irq,1);
 #endif		
-	}else{
+	} else {
 		pr_err("Macle irq gpio not provided\n");
 	        goto free_input_device;
 	}
@@ -266,8 +261,6 @@ static int ant_remove(struct platform_device *pdev)
 	input_unregister_device(ant->ipdev);
 	return 0;
 }
-
-
 
 static struct of_device_id sn_match_table[] = {
 	{ .compatible = "ant_check", },
