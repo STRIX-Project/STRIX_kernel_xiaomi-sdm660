@@ -464,7 +464,7 @@ static void tp_lockdown_init(void)
 	ret = fts_i2c_write_reg(client, 0x17, 0x20);
 	if (ret < 0)
 		FTS_ERROR("[FTS] i2c write 0x17 err\n");
-		msleep(5);
+	msleep(5);
 	auc_i2c_write_buf[0] = 0x81;
 		msleep(5);
 	ret = fts_i2c_read(client, auc_i2c_write_buf, 1, r_buf, 8);
