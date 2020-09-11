@@ -207,9 +207,9 @@ static void split_settled(struct pl_data *chip)
 		pval.intval = total_current_ua - slave_ua;
 #ifdef CONFIG_MACH_XIAOMI_WHYRED
 		if (chip->pl_mode == POWER_SUPPLY_PL_USBIN_USBIN) {
-			pr_err("pl_disable_votable effective main_psy current_ua =%d \n", pval.intval);
+			pr_debug("pl_disable_votable effective main_psy current_ua =%d \n", pval.intval);
 			if (get_effective_result_locked(chip->pl_disable_votable) && (pval.intval > ONLY_PM660_CURRENT_UA)) {
-				pr_err("pl_disable_votable effective main_psy force current_ua =%d to %d \n", pval.intval, ONLY_PM660_CURRENT_UA);
+				pr_debug("pl_disable_votable effective main_psy force current_ua =%d to %d \n", pval.intval, ONLY_PM660_CURRENT_UA);
 				pval.intval = ONLY_PM660_CURRENT_UA;
 			}
 		}
@@ -554,10 +554,10 @@ static int pl_fcc_vote_callback(struct votable *votable, void *data,
 		pval.intval = total_fcc_ua;
 #ifdef CONFIG_MACH_XIAOMI_WHYRED
 		if (chip->pl_mode == POWER_SUPPLY_PL_USBIN_USBIN) {
-			pr_err("pl_disable_votable effective total_fcc_ua =%d \n", total_fcc_ua);
+			pr_debug("pl_disable_votable effective total_fcc_ua =%d \n", total_fcc_ua);
 			if (pval.intval > ONLY_PM660_CURRENT_UA) {
 				pval.intval = ONLY_PM660_CURRENT_UA;
-				pr_err("pl_disable_votable effective total_fcc_ua =%d froce to %d \n", total_fcc_ua, pval.intval);
+				pr_debug("pl_disable_votable effective total_fcc_ua =%d froce to %d \n", total_fcc_ua, pval.intval);
 			}
 		}
 #endif
@@ -1249,12 +1249,12 @@ static void handle_settled_icl_change(struct pl_data *chip)
 			return;
 		}
 		battery_temp = lct_pval.intval;
-		pr_err("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d , battery_temp=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua, battery_temp);
+		pr_debug("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d , battery_temp=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua, battery_temp);
 		if ((main_limited && (main_settled_ua + chip->pl_settled_ua) < 1300000)
 				|| (main_settled_ua == 0)
 				|| ((total_current_ua >= 0) &&
 				(total_current_ua <= 1300000))){
-			pr_err("total_current_ua <= 1300000 disable parallel charger smb1351 \n");
+			pr_debug("total_current_ua <= 1300000 disable parallel charger smb1351 \n");
 			vote(chip->pl_enable_votable_indirect, USBIN_I_VOTER, false, 0);
 			vote(chip->pl_disable_votable, PL_TEMP_VOTER, true, 0);
 		} else {
@@ -1267,18 +1267,18 @@ static void handle_settled_icl_change(struct pl_data *chip)
 			}
 		}
 	} else {
-		pr_err("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua);
+		pr_debug("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua);
 		if ((main_limited && (main_settled_ua + chip->pl_settled_ua) < 1300000)
 				|| (main_settled_ua == 0)
 				|| ((total_current_ua >= 0) &&
 				(total_current_ua <= 1300000))){
-			pr_err("total_current_ua <= 1300000 disable parallel charger smb1351 \n");
+			pr_debug("total_current_ua <= 1300000 disable parallel charger smb1351 \n");
 			vote(chip->pl_enable_votable_indirect, USBIN_I_VOTER, false, 0);
 		} else
 			vote(chip->pl_enable_votable_indirect, USBIN_I_VOTER, true, 0);
 	}
 #else
-	pr_err("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua);
+	pr_debug("main_limited=%d, main_settled_ua=%d, chip->pl_settled_ua=%d ,total_current_ua=%d\n", main_limited, main_settled_ua, chip->pl_settled_ua, total_current_ua);
 #ifdef CONFIG_MACH_LONGCHEER
 	if ((main_limited && (main_settled_ua + chip->pl_settled_ua) < 1300000)
 #else
