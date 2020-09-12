@@ -1209,7 +1209,7 @@ int get_sched_boost(char *st_name)
 {
 	struct schedtune *st = stune_get_by_name(st_name);
 
-	if (!st)
+	if (unlikely(!st))
 		return -EINVAL;
 
 	return st->sched_boost;
