@@ -2654,6 +2654,7 @@ static int msm_cpe_lsm_ioctl_compat(struct snd_pcm_substream *substream,
 					"SNDRV_LSM_EVENT_STATUS_V3_32",
 					err);
 				kfree(event_status);
+				err = -EFAULT;
 				goto done;
 			}
 		}
@@ -2664,7 +2665,9 @@ static int msm_cpe_lsm_ioctl_compat(struct snd_pcm_substream *substream,
 				dev_err(rtd->dev,
 					"%s: nomem for udata\n",
 					__func__);
+				kfree(event_status);
 				err = -EFAULT;
+				goto done;
 			} else {
 				udata_32->timestamp_lsw =
 					event_status->timestamp_lsw;
