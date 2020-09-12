@@ -3719,6 +3719,11 @@ static inline int do_prefer_idle(char *st_name, u64 prefer_idle)
 {
 	return 0;
 }
+
+static inline int get_sched_boost(char *st_name)
+{
+	return 0;
+}
 #endif /* CONFIG_DYNAMIC_STUNE_BOOST */
 
 #ifndef arch_scale_cpu_capacity
