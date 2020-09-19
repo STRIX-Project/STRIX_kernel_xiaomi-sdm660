@@ -1286,6 +1286,9 @@ static void fg_notify_charger(struct fg_chip *chip)
 		return;
 	}
 
+#ifdef CONFIG_MACH_LONGCHEER
+
+#else
 	prop.intval = chip->bp.fastchg_curr_ma * 1000;
 	rc = power_supply_set_property(chip->batt_psy,
 			POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX, &prop);
@@ -1294,6 +1297,7 @@ static void fg_notify_charger(struct fg_chip *chip)
 			rc);
 		return;
 	}
+#endif
 
 	fg_dbg(chip, FG_STATUS, "Notified charger on float voltage and FCC\n");
 }
@@ -2658,6 +2662,17 @@ static int fg_esr_timer_config(struct fg_chip *chip, bool sleep)
 	return 0;
 }
 
+static void fg_esr_timer_config_work(struct work_struct *work)
+{
+	struct fg_chip *chip = container_of(work, struct fg_chip,
+					    esr_timer_config_work.work);
+	int rc;
+
+	rc = fg_esr_timer_config(chip, false);
+	if (rc < 0)
+		pr_err("Error in configuring ESR timer, rc=%d\n", rc);
+}
+
 static void fg_ttf_update(struct fg_chip *chip)
 {
 	int rc;
@@ -2906,6 +2921,9 @@ static void status_change_work(struct work_struct *work)
 			chip->report_full = false;
 	}
 #endif
+
+	fg_cycle_counter_update(chip);
+	fg_cap_learning_update(chip);
 
 	rc = fg_charge_full_update(chip);
 	if (rc < 0)
@@ -5667,6 +5685,7 @@ static int fg_gen3_probe(struct platform_device *pdev)
 	INIT_WORK(&chip->esr_filter_work, esr_filter_work);
 	alarm_init(&chip->esr_filter_alarm, ALARM_BOOTTIME,
 			fg_esr_filter_alarm_cb);
+	INIT_DELAYED_WORK(&chip->esr_timer_config_work, fg_esr_timer_config_work);
 
 	rc = fg_memif_init(chip);
 	if (rc < 0) {
@@ -5775,12 +5794,8 @@ static int fg_gen3_suspend(struct device *dev)
 static int fg_gen3_resume(struct device *dev)
 {
 	struct fg_chip *chip = dev_get_drvdata(dev);
-	int rc;
 
-	rc = fg_esr_timer_config(chip, false);
-	if (rc < 0)
-		pr_err("Error in configuring ESR timer, rc=%d\n", rc);
-
+	schedule_delayed_work(&chip->esr_timer_config_work, 0);
 	schedule_delayed_work(&chip->ttf_work, 0);
 	if (fg_sram_dump)
 		schedule_delayed_work(&chip->sram_dump_work,
