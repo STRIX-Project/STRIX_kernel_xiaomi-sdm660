@@ -35,7 +35,9 @@
 	pr_err(x); \
 } while (0)
 
+#ifdef CONFIG_IPC_LOGGING
 static void *glink_ssr_log_ctx;
+#endif
 
 /* Global restart counter */
 static uint32_t sequence_number;
