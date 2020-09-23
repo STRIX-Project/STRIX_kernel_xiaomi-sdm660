@@ -46,7 +46,9 @@
 
 #define SMD_TTY_ERR(buf...) ((void)0)
 
+#ifdef CONFIG_IPC_LOGGING
 static void *smd_tty_log_ctx;
+#endif
 static bool smd_tty_in_suspend;
 static bool smd_tty_read_in_suspend;
 static struct wakeup_source read_in_suspend_ws;
