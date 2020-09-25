@@ -17,6 +17,7 @@
 #include "common-sdm660-pinctrl.dtsi"
 #include "common-sdm660-leds.dtsi"
 #include "common-sdm660-ramoops.dtsi"
+#include "../../sdm660-thermal.dtsi"
 
 /* sdm660.dtsi common diff */
 &soc {
