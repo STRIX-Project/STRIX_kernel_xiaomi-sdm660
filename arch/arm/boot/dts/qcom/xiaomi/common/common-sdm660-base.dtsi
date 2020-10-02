@@ -15,6 +15,7 @@
 #include "common-sdm660-mdss.dtsi"
 #include "common-sdm660-mtp.dtsi"
 #include "common-sdm660-pinctrl.dtsi"
+#include "common-sdm660-leds.dtsi"
 
 /* sdm660.dtsi common diff */
 / {
