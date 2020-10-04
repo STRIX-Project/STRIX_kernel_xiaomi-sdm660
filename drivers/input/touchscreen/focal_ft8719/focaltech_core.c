@@ -599,9 +599,9 @@ static void fts_release_all_finger(void)
 static int fts_input_report_key(struct fts_ts_data *data, int index)
 {
     u32 ik;
-    int id = data->events[index].id;
+    //int id = data->events[index].id;
     int x = data->events[index].x;
-    int y = data->events[index].y;
+    //int y = data->events[index].y;
     int flag = data->events[index].flag;
     u32 key_num = data->pdata->key_number;
 
