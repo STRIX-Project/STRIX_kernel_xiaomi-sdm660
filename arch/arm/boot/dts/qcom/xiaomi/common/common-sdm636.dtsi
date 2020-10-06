@@ -115,3 +115,8 @@
 	qcom,mdss-dsi-bl-max-level = <4095>;
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
 };
+
+/* Use Adreno 512 chip ID */
+&msm_gpu {
+	qcom,chipid = <0x05010200>;
+};
