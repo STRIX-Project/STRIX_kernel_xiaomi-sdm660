@@ -1,0 +1,104 @@
+diff --git a/arch/arm/boot/dts/qcom/sdm660-regulator.dtsi b/arch/arm/boot/dts/qcom/sdm660-regulator.dtsi
+index b046f106d95c..803fe9ac329e 100644
+--- a/arch/arm/boot/dts/qcom/sdm660-regulator.dtsi
++++ b/arch/arm/boot/dts/qcom/sdm660-regulator.dtsi
+@@ -597,11 +597,11 @@
+ 				qcom,cpr-corner-fmax-map = <1 2 3 4 5 6>;
+ 
+ 				qcom,cpr-voltage-ceiling =
+-					<585000  645000  725000  790000
+-					 870000  925000 1070000>;
++					<505000  565000  645000  710000
++					 790000  845000  990000>;
+ 				qcom,cpr-voltage-floor =
+-					<504000  504000  596000  652000
+-					 712000  744000 1070000>;
++					<424000  424000  516000  572000
++					 632000  644000  990000>;
+ 
+ 				qcom,mem-acc-voltage = <1 1 1 2 2 2 2>;
+ 				qcom,system-voltage =
+@@ -747,12 +747,12 @@
+ 					<2 3 4 5 8>;
+ 
+ 				qcom,cpr-voltage-ceiling =
+-					< 724000  724000  724000  788000  868000
+-					 1068000 1068000 1068000>;
++					< 644000  644000  644000  708000  788000
++					  988000  988000  988000>;
+ 
+ 				qcom,cpr-voltage-floor =
+-					<588000  588000  596000  652000  712000
+-					 744000  784000  844000>;
++					<508000  508000  516000  572000  632000
++					 644000  704000  764000>;
+ 
+ 				qcom,corner-frequencies =
+ 					/* Speed bin 0 */
+@@ -898,12 +898,12 @@
+ 					<2 3 4 6 7>;
+ 
+ 				qcom,cpr-voltage-ceiling =
+-					<724000  724000  788000  868000
+-					 988000  988000 1068000>;
++					<644000  644000  708000  788000
++					 908000  908000  988000>;
+ 
+ 				qcom,cpr-voltage-floor =
+-					<588000  596000  652000  712000
+-					 744000  784000  844000>;
++					<508000  516000  572000  632000
++					 664000  704000  764000>;
+ 
+ 				qcom,corner-frequencies =
+ 					/* Speed bin 0 */
+diff --git a/drivers/regulator/cpr4-mmss-ldo-regulator.c b/drivers/regulator/cpr4-mmss-ldo-regulator.c
+index 6c6d112d2a6a..9ad6fa7bc2b2 100644
+--- a/drivers/regulator/cpr4-mmss-ldo-regulator.c
++++ b/drivers/regulator/cpr4-mmss-ldo-regulator.c
+@@ -122,12 +122,12 @@ static const struct cpr3_fuse_param sdm660_ldo_cpr_cl_enable_param[] = {
+ 
+ /* Open loop voltage fuse reference voltages in microvolts */
+ static const int sdm660_mmss_fuse_ref_volt[SDM660_MMSS_FUSE_CORNERS] = {
+-	585000,
++	505000,
++	565000,
+ 	645000,
+-	725000,
++	710000,
+ 	790000,
+-	870000,
+-	925000,
++	845000,
+ };
+ 
+ #define SDM660_MMSS_FUSE_STEP_VOLT		10000
+diff --git a/drivers/regulator/cprh-kbss-regulator.c b/drivers/regulator/cprh-kbss-regulator.c
+index 7320f8066aef..64209a98e472 100644
+--- a/drivers/regulator/cprh-kbss-regulator.c
++++ b/drivers/regulator/cprh-kbss-regulator.c
+@@ -481,18 +481,18 @@ msm8998_v2_kbss_fuse_ref_volt[2][MSM8998_KBSS_FUSE_CORNERS] = {
+ static const int
+ sdm660_kbss_fuse_ref_volt[2][SDM660_KBSS_FUSE_CORNERS] = {
+ 	[CPRH_KBSS_POWER_CLUSTER_ID] = {
++		564000,
+ 		644000,
+-		724000,
++		708000,
+ 		788000,
+-		868000,
+-		1068000,
++		988000,
+ 	},
+ 	[CPRH_KBSS_PERFORMANCE_CLUSTER_ID] = {
+-		724000,
++		644000,
++		708000,
+ 		788000,
+-		868000,
++		908000,
+ 		988000,
+-		1068000,
+ 	},
+ };
+ 
