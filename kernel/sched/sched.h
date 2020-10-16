@@ -441,8 +441,6 @@ struct cfs_rq {
 #endif
 
 #ifdef CONFIG_CFS_BANDWIDTH
-
-
 	int runtime_enabled;
 	u64 runtime_expires;
 	s64 runtime_remaining;
@@ -1463,7 +1461,6 @@ extern void resched_cpu(int cpu);
 
 extern struct rt_bandwidth def_rt_bandwidth;
 extern void init_rt_bandwidth(struct rt_bandwidth *rt_b, u64 period, u64 runtime);
-extern void init_rt_schedtune_timer(struct sched_rt_entity *rt_se);
 
 extern struct dl_bandwidth def_dl_bandwidth;
 extern void init_dl_bandwidth(struct dl_bandwidth *dl_b, u64 period, u64 runtime);
