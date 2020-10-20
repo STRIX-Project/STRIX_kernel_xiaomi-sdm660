@@ -310,33 +310,6 @@ static const struct file_operations nvt_gesture_fops_wake = {
 };
 #define NVT_GESTURE_NAME "nvt_wake_gesture"
 #endif
-
-static int nvt_gesture_read(struct seq_file *file, void *v)
-{
-	seq_printf(file, "%d", enable_gesture_mode);
-	return 0;
-}
- static int nvt_gesture_open(struct inode *inode, struct file *file)
-{
-	return single_open(file, nvt_gesture_read, inode);
-}
- static ssize_t nvt_gesture_write(struct file *file, const char __user *buf,
-			 size_t count, loff_t *ppos)
-{
-	uint8_t str;
-	if(copy_from_user(&str, buf, 1)); // ignore
-	enable_gesture_mode = (str == '1');
-	return 1;
-}
- static const struct file_operations nvt_gesture_fops = {
-	.owner = THIS_MODULE,
-	.open = nvt_gesture_open,
-	.write = nvt_gesture_write,
-	.release = single_release,
-	.read = seq_read,
-	.llseek = seq_lseek,
-};
-
 #endif
 
 static uint8_t bTouchIsAwake = 0;
