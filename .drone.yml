@@ -6,7 +6,7 @@ name: FiqriPipeline
 steps: 
   - 
     commands: 
-      - "curl https://raw.githubusercontent.com/fiqri19102002/build_script/droneci-test/kernel.sh | bash"
+      - "curl https://raw.githubusercontent.com/STRIX-Project/kernel_build_script/droneci/droneci-test-xiaomi.sh | bash"
     environment: 
       TELEGRAM_TOKEN: 
         from_secret: BOT_API_KEY
