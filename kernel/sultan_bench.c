@@ -17,7 +17,8 @@ static const int little_cpu_freqs[] = {
 	1113600,
 	1401600,
 	1536000,
-	1612800
+	1612800,
+	1843200
 #endif
 };
 
@@ -26,7 +27,8 @@ static const int big_cpu_freqs[] = {
 	1113600,
 	1401600,
 	1747200,
-	1804800
+	1804800,
+	2208000
 #endif
 };
 
