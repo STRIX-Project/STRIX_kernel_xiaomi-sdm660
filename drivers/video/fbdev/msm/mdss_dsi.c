@@ -54,11 +54,6 @@ static struct mdss_dsi_data *mdss_dsi_res;
 
 static struct pm_qos_request mdss_dsi_pm_qos_request;
 
-#ifdef CONFIG_MACH_LONGCHEER
-extern int mdss_first_set_feature(struct mdss_panel_data *pdata,int first_ce_state,int first_cabc_state,int first_srgb_state,int first_gamma_state,
-		int first_cabc_movie_state,int first_cabc_still_state);
-#endif
-
 #ifdef DSI_ACCESS
 static ssize_t dsi_access_sysfs_read_show(struct device *dev,
 		struct device_attribute *attr, char *buf);
@@ -2162,11 +2157,6 @@ static int mdss_dsi_unblank(struct mdss_panel_data *pdata)
 			ATRACE_END("dsi_panel_on");
 		}
 	}
-
-#if defined(CONFIG_MACH_XIAOMI_LAVENDER) || defined(CONFIG_MACH_XIAOMI_TULIP) || defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_WHYRED)
-#else
-	mdss_first_set_feature(pdata, -1, 1, -1, -1, -1, -1);
-#endif
 
 	if (mipi->vsync_enable && mipi->hw_vsync_mode) {
 		mdss_dsi_set_tear_on(ctrl_pdata);
