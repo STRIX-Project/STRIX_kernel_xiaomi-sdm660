@@ -2253,10 +2253,10 @@ static void qpnp_hap_td_enable(struct timed_output_dev *dev, int time_ms)
 {
 	struct qpnp_hap *hap = container_of(dev, struct qpnp_hap,
 					 timed_dev);
-	bool state = !!time_ms;
 #ifdef CONFIG_MACH_LONGCHEER
 	int vmax_mv;
 #else
+	bool state = !!time_ms;
 	ktime_t rem;
 #endif
 	int rc;
@@ -2295,7 +2295,11 @@ static void qpnp_hap_td_enable(struct timed_output_dev *dev, int time_ms)
 #ifdef CONFIG_MACH_LONGCHEER
 	if (time_ms < 10)
 		time_ms = 10;
-
+#if defined (CONFIG_MACH_XIAOMI_LAVENDER) || defined (CONFIG_MACH_XIAOMI_TULIP) || defined (CONFIG_MACH_XIAOMI_WHYRED)
+	vmax_mv = hap->vmax_mv;
+	qpnp_hap_vmax_config(hap, vmax_mv, false);
+#endif
+#if defined (CONFIG_MACH_XIAOMI_WAYNE)
 	if ((time_ms >= 30) || (time_ms != 11) || (time_ms != 15) || (time_ms != 20)) {
 		vmax_mv = 2204;
 		qpnp_hap_vmax_config(hap, vmax_mv, false);
@@ -2320,6 +2324,7 @@ static void qpnp_hap_td_enable(struct timed_output_dev *dev, int time_ms)
 	qpnp_hap_play_mode_config(hap);
 	if (is_sw_lra_auto_resonance_control(hap))
 		hrtimer_cancel(&hap->auto_res_err_poll_timer);
+#endif
 
 	hrtimer_cancel(&hap->hap_timer);
 
