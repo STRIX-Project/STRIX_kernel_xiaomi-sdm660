@@ -9,13 +9,26 @@
 #include <asm/uaccess.h>
 
 #define sn_readl(drvdata, off)	__raw_readl(drvdata->base + off)
+#ifdef CONFIG_MACH_LONGCHEER
+#define fuse_readl(drvdata, off)	__raw_readl(drvdata->fuse_base + off)
+#endif
 
 #define SERIAL_NUM		(0x000)
 
+#ifdef CONFIG_MACH_LONGCHEER
+static uint32_t sn = 0;
+static uint32_t fuse_state1 = 0;
+static uint32_t fuse_state2 = 0;
+static uint32_t fuse_state3 = 0;
+#else
 static uint32_t sn;
+#endif
 
 struct sn_drvdata {
 	void __iomem		*base;
+#ifdef CONFIG_MACH_LONGCHEER
+	void __iomem		*fuse_base;
+#endif
 	struct device		*dev;
 };
 
@@ -51,11 +64,51 @@ static const struct file_operations sn_fops = {
 	.release	= single_release,
 };
 
+#ifdef CONFIG_MACH_LONGCHEER
+static int fuse_read(struct seq_file *m, void *v)
+{
+	struct sn_drvdata *drvdata = sndrvdata;
+
+	if (!drvdata)
+		return false;
+
+	if (fuse_state1 == 0)
+		fuse_state1 = fuse_readl(drvdata, SERIAL_NUM);
+	if (fuse_state2 == 0)
+			fuse_state2 = fuse_readl(drvdata, 4);
+	if (fuse_state3 == 0)
+		fuse_state3 = fuse_readl(drvdata, 8);
+
+	dev_dbg(drvdata->dev, "fuse state: 0x%x,0x%x,0x%x\n", fuse_state1, fuse_state2, fuse_state3);
+
+	seq_printf(m, "0x%x,0x%x,0x%x\n", fuse_state1, fuse_state2, fuse_state3);
+
+	return 0;
+
+}
+
+static int fuse_proc_open(struct inode *inode, struct file *file)
+{
+	return single_open(file, fuse_read, NULL);
+}
+
+static const struct file_operations fuse_fops = {
+	.open		= fuse_proc_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= single_release,
+};
+#endif
+
 static void sn_create_proc(void)
 {
 	struct proc_dir_entry *entry;
 	entry = proc_create("serial_num", 0 /* default mode */,
 			NULL /* parent dir */, &sn_fops);
+#ifdef CONFIG_MACH_LONGCHEER
+	entry = proc_create("fuse_state", 0 /* default mode */,
+			NULL /* parent dir */, &fuse_fops);
+#endif
 }
 
 static int sn_fuse_probe(struct platform_device *pdev)
@@ -79,6 +132,16 @@ static int sn_fuse_probe(struct platform_device *pdev)
 	drvdata->base = devm_ioremap(dev, res->start, resource_size(res));
 	if (!drvdata->base)
 		return -ENOMEM;
+
+#ifdef CONFIG_MACH_LONGCHEER
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "fuse-state");
+	if (!res)
+		return -ENODEV;
+
+	drvdata->fuse_base= devm_ioremap(dev, res->start, resource_size(res));
+	if (!drvdata->fuse_base)
+		return -ENOMEM;
+#endif
 
 	sn_create_proc();
 	dev_info(dev, "SN interface initialized\n");
