@@ -2526,7 +2526,7 @@ static void mdss_fb_scale_bl(struct msm_fb_data_type *mfd, u32 *bl_lvl)
 
 	pr_debug("input = %d, scale = %d\n", temp, mfd->bl_scale);
 	if (temp > mfd->panel_info->bl_max) {
-		pr_warn("%s: invalid bl level\n",
+		pr_debug("%s: invalid bl level\n",
 				__func__);
 		temp = mfd->panel_info->bl_max;
 	}
