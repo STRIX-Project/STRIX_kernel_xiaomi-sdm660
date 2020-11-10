@@ -1448,7 +1448,9 @@ static void msm_gfx_ldo_debugfs_init(struct msm_gfx_ldo *ldo_vreg)
 	temp = debugfs_create_file("debug_info", 0444, ldo_vreg->debugfs,
 					ldo_vreg, &msm_gfx_ldo_debug_info_fops);
 	if (IS_ERR_OR_NULL(temp)) {
+#ifdef CONFIG_DEBUGFS
 		pr_err("debug_info node creation failed\n");
+#endif
 		return;
 	}
 
