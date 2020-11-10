@@ -1482,7 +1482,7 @@ static int fg_load_learned_cap_from_sram(struct fg_chip *chip)
 
 	chip->cl.learned_cc_uah = act_cap_mah * 1000;
 
-#ifdef CONFIG_KERNEL_CUSTOM_E7S
+#ifdef CONFIG_MACH_XIAOMI_WHYRED
 	chip->cl.learned_cc_uah = (chip->cl.learned_cc_uah > 4000000) ? chip->cl.learned_cc_uah : 4000000;
 #endif
 	if (chip->cl.learned_cc_uah != chip->cl.nom_cap_uah) {
@@ -3256,7 +3256,7 @@ done:
 			NOM_CAP_OFFSET, rc);
 	} else {
 		chip->cl.nom_cap_uah = (int)(buf[0] | buf[1] << 8) * 1000;
-#ifdef CONFIG_KERNEL_CUSTOM_E7S
+#ifdef CONFIG_MACH_XIAOMI_WHYRED
 		chip->cl.nom_cap_uah = (chip->cl.nom_cap_uah > 4000000) ? chip->cl.nom_cap_uah : 4000000;
 #endif
 		rc = fg_load_learned_cap_from_sram(chip);
