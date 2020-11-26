@@ -641,9 +641,7 @@ static int qusb_phy_set_property_usb(struct power_supply *psy,
 	return 0;
 }
 
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 static void qusb_phy_get_tune2_param(struct qusb_phy *qphy)
 {
 	u8 num_of_bits;
@@ -798,9 +796,7 @@ static int qusb_phy_init(struct usb_phy *phy)
 	 * and try to read EFUSE value only once i.e. not every USB
 	 * cable connect case.
 	 */
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 	if (qphy->tune2_efuse_reg && !tune2) {
 		if (!qphy->tune2_val)
 			qusb_phy_get_tune2_param(qphy);
