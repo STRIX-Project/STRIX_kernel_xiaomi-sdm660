@@ -836,9 +836,7 @@ int smblib_rerun_apsd_if_required(struct smb_charger *chg)
 	if (!val.intval)
 		return 0;
 
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 	rc = smblib_request_dpdm(chg, true);
 	if (rc < 0)
 		smblib_err(chg, "Couldn't to enable DPDM rc=%d\n", rc);
@@ -1725,9 +1723,7 @@ int smblib_get_prop_batt_status(struct smb_charger *chg,
 	stat = stat & BATTERY_CHARGER_STATUS_MASK;
 
 	if (!usb_online && !dc_online) {
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 		switch (stat) {
 		case TERMINATE_CHARGE:
 		case INHIBIT_CHARGE:
@@ -1736,9 +1732,7 @@ int smblib_get_prop_batt_status(struct smb_charger *chg,
 		default:
 #endif
 			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 			break;
 		}
 #endif
