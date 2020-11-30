@@ -132,7 +132,7 @@ config FB_MSM_MDSS_KCAL_CTRL
 config FB_MSM_MDSS_LIVEDISPLAY
 	depends on FB_MSM_MDSS
 	bool "Lineage OS Livedisplay driver"
-	default n
+	default y
 	---help---
 	   * Bring in a lightweight version of the LiveDisplay driver which
 	     works for this chipset, and remove all the OEM spaghetti code.
