@@ -1607,9 +1607,7 @@ static void handle_vdm_rx(struct usbpd *pd, struct rx_msg *rx_msg)
 					has_dp = true;
 			}
 
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 			/*
 			 * Finally start USB host now that we have determined
 			 * if DisplayPort mode is present or not and limit USB
@@ -1634,9 +1632,7 @@ static void handle_vdm_rx(struct usbpd *pd, struct rx_msg *rx_msg)
 		switch (cmd) {
 		case USBPD_SVDM_DISCOVER_IDENTITY:
 		case USBPD_SVDM_DISCOVER_SVIDS:
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 			start_usb_host(pd, true);
 #endif
 			break;
@@ -2063,9 +2059,7 @@ static void usbpd_sm(struct work_struct *w)
 		if (ret) {
 			pd->caps_count++;
 
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 			if (pd->caps_count == 10 && pd->current_dr == DR_DFP) {
 				/* Likely not PD-capable, start host now */
 				start_usb_host(pd, true);

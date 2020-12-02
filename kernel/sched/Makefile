@@ -33,4 +33,5 @@ obj-$(CONFIG_CPU_FREQ_GOV_PWRUTILX) += cpufreq_pwrutilx.o
 obj-$(CONFIG_CPU_FREQ_GOV_HELIX) += cpufreq_helix_schedutil.o
 obj-$(CONFIG_CPU_FREQ_GOV_DARKUTIL) += cpufreq_darkutil.o
 obj-$(CONFIG_CPU_FREQ_GOV_ELECTROUTIL) += cpufreq_electroutil.o
+obj-$(CONFIG_CPU_FREQ_GOV_SCHEDHORIZON) += cpufreq_schedhorizon.o
 obj-y += boost.o

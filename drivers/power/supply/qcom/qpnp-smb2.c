@@ -2763,9 +2763,7 @@ static int smb2_probe(struct platform_device *pdev)
 	}
 	batt_charge_type = val.intval;
 
-#ifdef CONFIG_MACH_LONGCHEER
-
-#else
+#ifndef CONFIG_MACH_LONGCHEER
 	device_init_wakeup(chg->dev, true);
 #endif
 
