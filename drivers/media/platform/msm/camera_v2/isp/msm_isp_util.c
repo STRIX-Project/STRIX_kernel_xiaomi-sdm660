@@ -2323,9 +2323,7 @@ int msm_isp_open_node(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
 	vfe_dev->isp_raw1_debug = 0;
 	vfe_dev->isp_raw2_debug = 0;
 
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 	vfe_dev->irq_sof_id = 0;
 #endif
 	if (vfe_dev->hw_info->vfe_ops.core_ops.init_hw(vfe_dev) < 0) {

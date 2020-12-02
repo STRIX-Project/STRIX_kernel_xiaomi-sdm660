@@ -20,9 +20,7 @@
 
 #define HANDLE_TO_IDX(handle) (handle & 0xFF)
 #define ISP_SOF_DEBUG_COUNT 0
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 #define OTHER_VFE(vfe_id) (vfe_id == ISP_VFE0 ? ISP_VFE1 : ISP_VFE0)
 #endif
 
@@ -33,9 +31,7 @@ static void __msm_isp_axi_stream_update(
 			struct msm_vfe_axi_stream *stream_info,
 			struct msm_isp_timestamp *ts);
 
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 static int msm_isp_process_done_buf(struct vfe_device *vfe_dev,
 	struct msm_vfe_axi_stream *stream_info, struct msm_isp_buffer *buf,
 	struct timeval *time_stamp, uint32_t frame_id);
@@ -693,9 +689,7 @@ void msm_isp_process_reg_upd_epoch_irq(struct vfe_device *vfe_dev,
 		case MSM_ISP_COMP_IRQ_REG_UPD:
 			stream_info->activated_framedrop_period =
 				stream_info->requested_framedrop_period;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 			/* Free Pending Buffers which are backed-up due to
 			 * delay in RUP from userspace to Avoid pageFault
 			 */
@@ -1590,9 +1584,7 @@ static void msm_isp_axi_stream_enable_cfg(
 	}
 }
 
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 static void msm_isp_free_pending_buffer(
 			struct vfe_device *vfe_dev,
 			struct msm_vfe_axi_stream *stream_info,
@@ -2093,9 +2085,7 @@ static int msm_isp_cfg_ping_pong_address(
 
 	if (!buf) {
 		msm_isp_cfg_stream_scratch(stream_info, pingpong_status);
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 		if (stream_info->controllable_output)
 			return 1;
 #endif
@@ -2514,9 +2504,7 @@ static void msm_isp_input_enable(struct vfe_device *vfe_dev,
 			continue;
 		/* activate the input since it is deactivated */
 		axi_data->src_info[i].frame_id = 0;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 		vfe_dev->irq_sof_id = 0;
 #endif
 		if (axi_data->src_info[i].input_mux != EXTERNAL_READ)
@@ -2775,15 +2763,11 @@ int msm_isp_axi_reset(struct vfe_device *vfe_dev,
 	struct msm_isp_timestamp timestamp;
 	struct msm_vfe_frame_request_queue *queue_req;
 	unsigned long flags;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 	uint32_t pingpong_status;
 #endif
 	int vfe_idx;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 	uint32_t pingpong_bit = 0;
 	uint32_t frame_id = 0;
 	struct timeval *time_stamp;
@@ -2796,9 +2780,7 @@ int msm_isp_axi_reset(struct vfe_device *vfe_dev,
 	}
 
 	msm_isp_get_timestamp(&timestamp, vfe_dev);
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 	time_stamp = &timestamp.buf_time;
 #endif
 
@@ -2823,9 +2805,7 @@ int msm_isp_axi_reset(struct vfe_device *vfe_dev,
 
 		/* set ping pong to scratch before flush */
 		spin_lock_irqsave(&stream_info->lock, flags);
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 		frame_id = vfe_dev->axi_data.src_info[VFE_PIX_0].frame_id;
 		if (stream_info->controllable_output &&
 			stream_info->undelivered_request_cnt > 0) {
@@ -2900,9 +2880,7 @@ int msm_isp_axi_reset(struct vfe_device *vfe_dev,
 			axi_data->src_info[SRC_TO_INTF(stream_info->
 				stream_src)].frame_id =
 				reset_cmd->frame_id;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 			temp_vfe_dev->irq_sof_id = reset_cmd->frame_id;
 #endif
 		}
@@ -3177,9 +3155,7 @@ static void __msm_isp_stop_axi_streams(struct vfe_device *vfe_dev,
 		msm_isp_cfg_stream_scratch(stream_info, VFE_PING_FLAG);
 		msm_isp_cfg_stream_scratch(stream_info, VFE_PONG_FLAG);
 		stream_info->undelivered_request_cnt = 0;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 		if (stream_info->controllable_output &&
 			stream_info->pending_buf_info.is_buf_done_pending) {
 			msm_isp_free_pending_buffer(vfe_dev, stream_info,
@@ -3916,9 +3892,7 @@ static int msm_isp_request_frame(struct vfe_device *vfe_dev,
 			stream_info->undelivered_request_cnt--;
 			spin_unlock_irqrestore(&stream_info->lock,
 						flags);
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 			queue_req = list_first_entry_or_null(
 				&stream_info->request_q,
 				struct msm_vfe_frame_request_queue, list);
@@ -4417,9 +4391,7 @@ void msm_isp_process_axi_irq_stream(struct vfe_device *vfe_dev,
 	struct timeval *time_stamp;
 	uint32_t frame_id, buf_index = -1;
 	int vfe_idx;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 	struct vfe_device *temp_dev;
 	int other_vfe_id;
 #endif
@@ -4520,9 +4492,7 @@ void msm_isp_process_axi_irq_stream(struct vfe_device *vfe_dev,
 			ISP_DBG("%s: Error configuring ping_pong\n",
 				__func__);
 	} else if (done_buf && (done_buf->is_drop_reconfig != 1)) {
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 		int32_t frame_id_diff;
 		/* irq_sof should be always >= tasklet SOF id
 		 * For dual camera usecase irq_sof could be behind
@@ -4552,9 +4522,7 @@ void msm_isp_process_axi_irq_stream(struct vfe_device *vfe_dev,
 				stream_info->bufq_handle[
 				VFE_BUF_QUEUE_DEFAULT] & 0xFF]++;
 			vfe_dev->error_info.framedrop_flag = 1;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 			if (vfe_dev->is_split) {
 				other_vfe_id = OTHER_VFE(vfe_dev->pdev->id);
 				temp_dev =
@@ -4609,9 +4577,7 @@ void msm_isp_process_axi_irq_stream(struct vfe_device *vfe_dev,
 	* then dont issue buf-done for current buffer
 	*/
 		done_buf->is_drop_reconfig = 0;
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 		if (!stream_info->buf[pingpong_bit]) {
 			/* samebuffer is not re-programeed so write scratch */
 			msm_isp_cfg_stream_scratch(stream_info,
@@ -4620,9 +4586,7 @@ void msm_isp_process_axi_irq_stream(struct vfe_device *vfe_dev,
 #endif
 		spin_unlock_irqrestore(&stream_info->lock, flags);
 	} else {
-#ifdef CONFIG_PATCH_GCAM_FREEZE
-
-#else
+#ifndef CONFIG_PATCH_GCAM_FREEZE
 		/* If there is no regupdate from userspace then dont
 		 * free buffer immediately, delegate it to RegUpdateAck
 		 */
