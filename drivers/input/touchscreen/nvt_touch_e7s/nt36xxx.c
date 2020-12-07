@@ -49,7 +49,6 @@ static struct workqueue_struct *nvt_wq;
 static struct workqueue_struct *nvt_fwu_wq;
 extern void Boot_Update_Firmware(struct work_struct *work);
 #endif
-extern bool ESD_TE_status;
 static int fb_notifier_callback(struct notifier_block *self, unsigned long event, void *data);
 #ifdef CONFIG_TOUCHSCREEN_COMMON
 #include <linux/input/tp_common.h>
