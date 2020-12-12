@@ -465,6 +465,7 @@ struct fg_chip {
 	struct delayed_work	profile_load_work;
 	struct work_struct	status_change_work;
 	struct delayed_work	ttf_work;
+	struct delayed_work	esr_timer_config_work;
 	struct delayed_work	sram_dump_work;
 	struct work_struct	esr_filter_work;
 	struct alarm		esr_filter_alarm;
