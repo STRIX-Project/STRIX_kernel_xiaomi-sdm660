@@ -1261,9 +1261,9 @@ static int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dent
 {
 	struct superblock_security_struct *sbsec = NULL;
 	struct inode_security_struct *isec = inode->i_security;
-	char context_onstack[SZ_4K] __aligned(sizeof(long));
 	u32 sid;
 	struct dentry *dentry;
+#define INITCONTEXTLEN 255
 	char *context = NULL;
 	unsigned len = 0;
 	int rc = 0;
@@ -1318,11 +1318,19 @@ static int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dent
 			goto out_unlock;
 		}
 
-		context_onstack[ARRAY_SIZE(context_onstack) - 1] = '\0';
+		len = INITCONTEXTLEN;
+		context = kmalloc(len+1, GFP_NOFS);
+		if (!context) {
+			rc = -ENOMEM;
+			dput(dentry);
+			goto out_unlock;
+		}
+		context[len] = '\0';
 		rc = inode->i_op->getxattr(dentry, XATTR_NAME_SELINUX,
-					   context_onstack,
-					   ARRAY_SIZE(context_onstack));
+					   context, len);
 		if (rc == -ERANGE) {
+			kfree(context);
+
 			/* Need a larger buffer.  Query for the right size. */
 			rc = inode->i_op->getxattr(dentry, XATTR_NAME_SELINUX,
 						   NULL, 0);
@@ -1341,8 +1349,6 @@ static int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dent
 			rc = inode->i_op->getxattr(dentry,
 						   XATTR_NAME_SELINUX,
 						   context, len);
-		} else {
-			context = context_onstack;
 		}
 		dput(dentry);
 		if (rc < 0) {
@@ -1350,8 +1356,7 @@ static int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dent
 				printk(KERN_WARNING "SELinux: %s:  getxattr returned "
 				       "%d for dev=%s ino=%ld\n", __func__,
 				       -rc, inode->i_sb->s_id, inode->i_ino);
-				if (context != context_onstack)
-					kfree(context);
+				kfree(context);
 				goto out_unlock;
 			}
 			/* Map ENODATA to the default file SID */
@@ -1375,15 +1380,13 @@ static int inode_doinit_with_dentry(struct inode *inode, struct dentry *opt_dent
 					       "returned %d for dev=%s ino=%ld\n",
 					       __func__, context, -rc, dev, ino);
 				}
-				if (context != context_onstack)
-					kfree(context);
+				kfree(context);
 				/* Leave with the unlabeled SID */
 				rc = 0;
 				break;
 			}
 		}
-		if (context != context_onstack)
-			kfree(context);
+		kfree(context);
 		isec->sid = sid;
 		break;
 	case SECURITY_FS_USE_TASK:
