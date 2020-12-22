@@ -1,0 +1,14 @@
+name: Build test
+on:
+  push:
+    branches:
+      - sdm660-eas-ktweak
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: sudo apt-get -y install bc build-essential bison flex zip gcc clang libc6 curl libstdc++6 git wget libssl-dev zstd openjdk-11-jdk openjdk-11-jre python
+    - name: Execute script
+      run: "curl https://raw.githubusercontent.com/STRIX-Project/kernel_build_script/droneci/droneci-test-xiaomi.sh | bash"
