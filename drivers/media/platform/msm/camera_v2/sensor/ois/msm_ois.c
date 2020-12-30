@@ -201,8 +201,9 @@ static int32_t msm_ois_write_settings(struct msm_ois_ctrl_t *o_ctrl,
 			reg_setting =
 			kzalloc(sizeof(struct msm_camera_i2c_seq_reg_array),
 				GFP_KERNEL);
-				if (!reg_setting)
+				if (!reg_setting) {
 					return -ENOMEM;
+				}
 
 				reg_setting->reg_addr = settings[i].reg_addr;
 				reg_setting->reg_data[0] = (uint8_t)
@@ -224,8 +225,9 @@ static int32_t msm_ois_write_settings(struct msm_ois_ctrl_t *o_ctrl,
 					reg_setting->reg_data_size);
 				kfree(reg_setting);
 				reg_setting = NULL;
-				if (rc < 0)
+				if (rc < 0) {
 					return rc;
+				}
 				break;
 
 			default:

@@ -260,10 +260,14 @@ static int fts_gesture_open(struct inode *inode, struct file *file)
 static ssize_t fts_gesture_write(struct file *file, const char __user *buf,
              size_t count, loff_t *ppos)
 {
-    uint8_t str;
-    if(copy_from_user(&str, buf, 1)); // ignore
-    fts_gesture_data.mode = (str == '1');
-    return 1;
+	uint8_t str = 0;
+
+	if (copy_from_user(&str, buf, 1)) {
+		pr_err("%s: could not copy from user\n", __func__);
+		return -EFAULT;
+	}
+	fts_gesture_data.mode = (str == '1');
+	return 1;
 }
 
  static const struct file_operations fts_gesture_fops = {
