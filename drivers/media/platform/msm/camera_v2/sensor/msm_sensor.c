@@ -203,7 +203,8 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 			sensor_i2c_client);
 		if (rc < 0)
 			return rc;
-#ifdef CONFIG_MACH_LONGCHEER
+
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 		if (!s_ctrl->is_probe_succeed) {
 			rc = msm_sensor_match_vendor_id(s_ctrl);
 			if (rc < 0) {
@@ -214,6 +215,7 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 			}
 		}
 #endif
+
 		rc = msm_sensor_check_id(s_ctrl);
 		if (rc < 0) {
 			msm_camera_power_down(power_info,
@@ -228,7 +230,7 @@ int msm_sensor_power_up(struct msm_sensor_ctrl_t *s_ctrl)
 	return rc;
 }
 
-#ifdef CONFIG_MACH_LONGCHEER
+#ifdef CONFIG_MACH_XIAOMI_SDM660
 int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	int rc = 0;
@@ -237,11 +239,13 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 	struct msm_camera_slave_info *slave_info;
 	const char *sensor_name;
 	uint16_t temp_sid = 0;
+#ifdef CONFIG_MACH_LONGCHEER
 	uint16_t vcmid = 0;
 	int have_vcmid = 0;
 #ifdef CONFIG_MACH_XIAOMI_NEW_CAMERA
 	uint16_t lensid = 0;
 	int have_lensid = 0;
+#endif
 #endif
 	enum cci_i2c_master_t temp_master = MASTER_0;
 
@@ -282,6 +286,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 	sensor_i2c_client->cci_client->sid =
 		s_ctrl->sensordata->vendor_id_info->eeprom_slave_addr >> 1;
 
+#ifdef CONFIG_MACH_LONGCHEER
 	rc = msm_camera_cci_i2c_read(
 		sensor_i2c_client,
 		s_ctrl->sensordata->vendor_id_info->vendor_id_addr,
@@ -307,6 +312,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 		have_lensid = 1;
 	}
 #endif
+#endif
 
 	sensor_i2c_client->cci_client->sid = temp_sid;
 	sensor_i2c_client->cci_client->cci_i2c_master = temp_master;
@@ -320,7 +326,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 		s_ctrl->sensordata->vendor_id_info->eeprom_slave_addr,
 		s_ctrl->sensordata->vendor_id_info->vendor_id_addr);
 		rc = -1;
-		return rc;
+#ifdef CONFIG_MACH_LONGCHEER
 	} else {
 		if (have_vcmid) {
 			if (s_ctrl->sensordata->vcm_id_info->vcm_id != vcmid) {
@@ -345,6 +351,7 @@ int msm_sensor_match_vendor_id(struct msm_sensor_ctrl_t *s_ctrl)
 					__func__, lensid, s_ctrl->sensordata->lens_id_info->lens_id);
 			}
 		}
+#endif
 #endif
 	}
 	pr_err("%s: read vendor id: 0x%x expected id 0x%x:\n",
