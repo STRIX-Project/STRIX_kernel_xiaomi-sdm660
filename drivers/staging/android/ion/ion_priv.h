@@ -23,7 +23,7 @@
 #include <linux/kref.h>
 #include <linux/mm_types.h>
 #include <linux/mutex.h>
-#include <linux/rbtree.h>
+#include <linux/rbtree_latch.h>
 #include <linux/seq_file.h>
 
 #include "msm_ion_priv.h"
@@ -40,7 +40,8 @@
 struct ion_handle {
 	struct ion_buffer *buffer;
 	struct ion_client *client;
-	struct rb_node rnode;
+	struct latch_tree_node rnode;
+	struct rcu_head rcu;
 	atomic_t refcount;
 	int id;
 };
@@ -273,6 +274,7 @@ void ion_carveout_free(struct ion_heap *heap, ion_phys_addr_t addr,
  * @gfp_mask:		gfp_mask to use from alloc
  * @order:		order of pages in the pool
  * @list:		plist node for list of pools
+ * @inode:		inode for ion_pool pseudo filesystem
  *
  * Allows you to keep a pool of pre allocated pages to use from your heap.
  * Keeping a pool of pages that is ready for dma, ie any cached mapping have
@@ -289,10 +291,11 @@ struct ion_page_pool {
 	gfp_t gfp_mask;
 	unsigned int order;
 	struct plist_node list;
+	struct inode *inode;
 };
 
 struct ion_page_pool *ion_page_pool_create(struct device *dev, gfp_t gfp_mask,
-					   unsigned int order);
+					   unsigned int order, bool movable);
 void ion_page_pool_destroy(struct ion_page_pool *);
 void *ion_page_pool_alloc(struct ion_page_pool *, bool *from_pool);
 void *ion_page_pool_alloc_pool_only(struct ion_page_pool *);

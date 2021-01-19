@@ -48,6 +48,7 @@
 
 #define TAS2557_CAL_NAME    "/mnt/vendor/persist/audio/tas2557_cal.bin"
 
+#define RESTART_MAX 3
 
 static int tas2557_load_calibration(struct tas2557_priv *pTAS2557,
 	char *pFileName);
@@ -71,6 +72,7 @@ static int tas2557_load_configuration(struct tas2557_priv *pTAS2557,
 #define TAS2557_BLOCK_CFG_PRE_DEV_B		0x0b
 #define TAS2557_BLOCK_CFG_POST			0x05
 #define TAS2557_BLOCK_CFG_POST_POWER	0x06
+#define TAS2557_ASI2
 
 static unsigned int p_tas2557_default_data[] = {
 	TAS2557_SAR_ADC2_REG, 0x05,	/* enable SAR ADC */
@@ -95,11 +97,24 @@ static unsigned int p_tas2557_startup_data[] = {
 	TAS2557_GPI_PIN_REG, 0x15,	/* enable DIN, MCLK, CCI */
 	TAS2557_GPIO1_PIN_REG, 0x01,	/* enable BCLK */
 	TAS2557_GPIO2_PIN_REG, 0x01,	/* enable WCLK */
+#ifdef TAS2557_ASI2
+	TAS2557_GPIO6_PIN_REG, 0x01,	/* GPIO6 as ASI2 WCLK, input 0x01, output 0x11 */
+	TAS2557_GPIO8_PIN_REG, 0x02,	/* GPIO8 as ASI2 DIN */
+	TAS2557_ASI2_DAC_FORMAT_REG, 0x18,	/* ASI2 as 32bit */
+	TAS2557_ASI2_BDIV_CLK_SEL_REG, 0x01,	/* ASI2 BDIV Clock source */
+	TAS2557_ASI2_BDIV_CLK_RATIO_REG, 0x01,	/* ASI2 BDIV Ratio */
+	TAS2557_ASI2_BDIV_CLK_RATIO_REG, 0x81,	/* ASI2 BDIV Power Up */
+	TAS2557_ASI2_WDIV_CLK_RATIO_REG, 0x40,  /* ASI2 WDIV Ratio */
+	TAS2557_ASI2_WDIV_CLK_RATIO_REG, 0xc0,  /* ASI2 WDIV Power Up */
+	TAS2557_GPIO5_PIN_REG, 0x01,		/* GPIO5 as ASI2 BCLK, input 0x01, output 0x12 */
+	TAS2557_GPIO7_PIN_REG, 0x15,		/* GPIO7 as ASI2 DOUT */
+#endif
 	TAS2557_POWER_CTRL2_REG, 0xA0,	 /* Class-D, Boost power up */
 	TAS2557_POWER_CTRL2_REG, 0xA3,	 /* Class-D, Boost, IV sense power up */
 	TAS2557_POWER_CTRL1_REG, 0xF8,	 /* PLL, DSP, clock dividers power up */
 	TAS2557_UDELAY, 2000,		/* delay */
 	TAS2557_CLK_ERR_CTRL, 0x2b,	/* enable clock error detection */
+	TAS2557_DBOOST_CFG_REG, 0x0b,   /* HTC_AUD: Solve full band noise */
 	0xFFFFFFFF, 0xFFFFFFFF
 };
 
@@ -123,6 +138,17 @@ static unsigned int p_tas2557_shutdown_data[] = {
 	TAS2557_GPI_PIN_REG, 0x00,	/* disable DIN, MCLK, CCI */
 	0xFFFFFFFF, 0xFFFFFFFF
 };
+
+static void force_vbob_pwm_mode(struct tas2557_priv *pTAS2557, bool enable)
+{
+	if (pTAS2557->vbob_regulator == NULL)
+		return;
+ 	if (regulator_set_mode(pTAS2557->vbob_regulator, enable ?
+			       REGULATOR_MODE_FAST : REGULATOR_MODE_NORMAL))
+		dev_err(pTAS2557->dev, "failed to set BoB to %s\n",
+			enable ? "FAST" : "NORMAL");
+}
+
 
 static int tas2557_dev_load_data(struct tas2557_priv *pTAS2557,
 	unsigned int *pData)
@@ -253,6 +279,176 @@ end:
 	return nResult;
 }
 
+int tas2557_update_VBstVolt(struct tas2557_priv *pTAS2557)
+{
+	int nResult = 0;
+	int nVBstVoltSet = -1;
+
+	switch (pTAS2557->mnVBoostVoltage) {
+	case TAS2557_VBST_8P5V:
+		nVBstVoltSet = 6;
+		dev_warn(pTAS2557->dev, "%s, PPG of this snapshot should be 0dB\n", __func__);
+	break;
+
+	case TAS2557_VBST_8P1V:
+		nVBstVoltSet = 5;
+		dev_warn(pTAS2557->dev, "%s, PPG of this snapshot should be -1dB\n", __func__);
+	break;
+
+	case TAS2557_VBST_7P6V:
+		nVBstVoltSet = 4;
+		dev_warn(pTAS2557->dev, "%s, PPG of this snapshot should be -2dB\n", __func__);
+	break;
+
+	case TAS2557_VBST_6P6V:
+		nVBstVoltSet = 2;
+		dev_warn(pTAS2557->dev, "%s, PPG of this snapshot should be -3dB\n", __func__);
+	break;
+
+	case TAS2557_VBST_5P6V:
+		nVBstVoltSet = 0;
+		dev_warn(pTAS2557->dev, "%s, PPG of this snapshot should be -4dB\n", __func__);
+	break;
+
+	default:
+		dev_err(pTAS2557->dev, "%s, error volt %d\n", __func__, pTAS2557->mnVBoostVoltage);
+	break;
+	}
+
+	if (nVBstVoltSet >= 0) {
+			nResult = pTAS2557->update_bits(pTAS2557, TAS2557_VBST_VOLT_REG, 0xe0, (nVBstVoltSet << 5));
+		dev_dbg(pTAS2557->dev, "%s, set vbst voltage 0x%x\n", __func__, (nVBstVoltSet << 5));
+	}
+
+	return nResult;
+}
+
+int tas2557_get_VBoost(struct tas2557_priv *pTAS2557, int *pVBoost)
+{
+	int nResult = 0;
+
+	dev_dbg(pTAS2557->dev, "%s, VBoost state %d\n", __func__, pTAS2557->mnVBoostState);
+	switch (pTAS2557->mnVBoostState) {
+	case TAS2557_VBST_NEED_DEFAULT:
+	case TAS2557_VBST_DEFAULT:
+		*pVBoost = 0;
+	break;
+
+	case TAS2557_VBST_A_ON:
+	case TAS2557_VBST_B_ON:
+	case TAS2557_VBST_A_ON_B_ON:
+		*pVBoost = 1;
+	break;
+	default:
+		dev_err(pTAS2557->dev, "%s, error state %d\n", __func__, pTAS2557->mnVBoostState);
+	break;
+	}
+
+	return nResult;
+}
+
+int tas2557_set_VBoost(struct tas2557_priv *pTAS2557, int vboost, bool bPowerOn)
+{
+	int nResult = 0;
+	struct TConfiguration *pConfiguration;
+	unsigned int nDevAVBstCtrl, nDevASlpCtrl;
+	unsigned int nConfig;
+
+	if ((!pTAS2557->mpFirmware->mnConfigurations)
+		|| (!pTAS2557->mpFirmware->mnPrograms)) {
+		dev_err(pTAS2557->dev, "%s, firmware not loaded\n", __func__);
+		goto end;
+	}
+
+	if (bPowerOn) {
+		dev_info(pTAS2557->dev, "%s, will load VBoost state next time before power on\n", __func__);
+		pTAS2557->mbLoadVBoostPrePowerUp = true;
+		pTAS2557->mnVBoostNewState = vboost;
+		goto end;
+	}
+
+	if (pTAS2557->mbLoadConfigurationPrePowerUp)
+		nConfig = pTAS2557->mnNewConfiguration;
+	else
+		nConfig = pTAS2557->mnCurrentConfiguration;
+
+	pConfiguration = &(pTAS2557->mpFirmware->mpConfigurations[nConfig]);
+
+	if (pTAS2557->mnVBoostState == TAS2557_VBST_NEED_DEFAULT) {
+			nResult = pTAS2557->read(pTAS2557, TAS2557_VBOOST_CTL_REG, &pTAS2557->mnVBoostDefaultCfg[0]);
+			if (nResult < 0)
+				goto end;
+			nResult = pTAS2557->read(pTAS2557, TAS2557_SLEEPMODE_CTL_REG, &pTAS2557->mnVBoostDefaultCfg[1]);
+			if (nResult < 0)
+				goto end;
+			
+		dev_dbg(pTAS2557->dev, "%s, get default VBoost\n", __func__);
+		pTAS2557->mnVBoostState = TAS2557_VBST_DEFAULT;
+		if ((vboost == TAS2557_VBST_DEFAULT)
+			|| (vboost == TAS2557_VBST_NEED_DEFAULT)) {
+			dev_dbg(pTAS2557->dev, "%s, already default, bypass\n", __func__);
+			goto end;
+		}
+	}
+
+	if (vboost) {
+		if (pConfiguration->mnDevices) {
+			if (!(pTAS2557->mnVBoostState & TAS2557_VBST_A_ON)) {
+				nResult = tas2557_update_VBstVolt(pTAS2557);
+				if (nResult < 0)
+					goto end;
+				nDevAVBstCtrl = 0x40;
+				nDevASlpCtrl = 0xb0;
+				nResult = pTAS2557->write(pTAS2557, TAS2557_VBOOST_CTL_REG, nDevAVBstCtrl);
+				if (nResult < 0)
+					goto end;
+				nResult = pTAS2557->write(pTAS2557, TAS2557_SLEEPMODE_CTL_REG, nDevASlpCtrl);
+				if (nResult < 0)
+					goto end;
+				pTAS2557->mnVBoostState |= TAS2557_VBST_A_ON;
+				dev_dbg(pTAS2557->dev, "%s, devA Boost On, %d\n", __func__, pTAS2557->mnVBoostState);
+			}
+		} else {
+			if (pTAS2557->mnVBoostState & TAS2557_VBST_A_ON) {
+				nResult = tas2557_update_VBstVolt(pTAS2557);
+				if (nResult < 0)
+					goto end;
+				nDevAVBstCtrl = pTAS2557->mnVBoostDefaultCfg[0];
+				nDevASlpCtrl = pTAS2557->mnVBoostDefaultCfg[1];
+				nResult = pTAS2557->write(pTAS2557, TAS2557_VBOOST_CTL_REG, nDevAVBstCtrl);
+				if (nResult < 0)
+					goto end;
+				nResult = pTAS2557->write(pTAS2557, TAS2557_SLEEPMODE_CTL_REG, nDevASlpCtrl);
+				if (nResult < 0)
+					goto end;
+				pTAS2557->mnVBoostState &= ~TAS2557_VBST_A_ON;
+				dev_dbg(pTAS2557->dev, "%s, devA Boost Off, %d\n", __func__, pTAS2557->mnVBoostState);
+			}
+		}
+	}
+	else {
+		nDevAVBstCtrl = pTAS2557->mnVBoostDefaultCfg[0];
+		nDevASlpCtrl = pTAS2557->mnVBoostDefaultCfg[1];
+		if (pTAS2557->mnVBoostState & TAS2557_VBST_A_ON) {
+			nResult = tas2557_update_VBstVolt(pTAS2557);
+			if (nResult < 0)
+				goto end;
+			nResult = pTAS2557->write(pTAS2557, TAS2557_VBOOST_CTL_REG, nDevAVBstCtrl);
+			if (nResult < 0)
+				goto end;
+			nResult = pTAS2557->write(pTAS2557, TAS2557_SLEEPMODE_CTL_REG, nDevASlpCtrl);
+			if (nResult < 0)
+				goto end;
+			pTAS2557->mnVBoostState &= ~TAS2557_VBST_A_ON;
+			dev_dbg(pTAS2557->dev, "%s, devA Boost default, %d\n", __func__, pTAS2557->mnVBoostState);
+		}
+	}
+
+end:
+
+	return 0;
+}
+
 int tas2557_load_platdata(struct tas2557_priv *pTAS2557)
 {
 	int nResult = 0;
@@ -291,19 +487,40 @@ end:
 
 static void failsafe(struct tas2557_priv *pTAS2557)
 {
+	int ret;
+
 	dev_err(pTAS2557->dev, "%s\n", __func__);
 	pTAS2557->mnErrCode |= ERROR_FAILSAFE;
 	if (hrtimer_active(&pTAS2557->mtimer))
 		hrtimer_cancel(&pTAS2557->mtimer);
+
+	if(pTAS2557->mnRestart < RESTART_MAX)
+	{
+		pTAS2557->mnRestart ++;
+		msleep(100);
+		dev_err(pTAS2557->dev, "I2C COMM error, restart SmartAmp.\n");
+		schedule_delayed_work(&pTAS2557->irq_work, msecs_to_jiffies(100));
+		return;
+	}
 	pTAS2557->enableIRQ(pTAS2557, false, false);
-	tas2557_dev_load_data(pTAS2557, p_tas2557_shutdown_data);
+	ret = tas2557_dev_load_data(pTAS2557, p_tas2557_shutdown_data);
+	if (ret < 0)
+		dev_dbg(pTAS2557->dev, "failed load shutdown\n");
+
 	pTAS2557->mbPowerUp = false;
 	pTAS2557->hw_reset(pTAS2557);
-	pTAS2557->write(pTAS2557, TAS2557_SW_RESET_REG, 0x01);
+	ret = pTAS2557->write(pTAS2557, TAS2557_SW_RESET_REG, 0x01);
+	if (ret < 0)
+		dev_dbg(pTAS2557->dev, "failed sw reset\n");
+
 	udelay(1000);
-	pTAS2557->write(pTAS2557, TAS2557_SPK_CTRL_REG, 0x04);
+	ret = pTAS2557->write(pTAS2557, TAS2557_SPK_CTRL_REG, 0x04);
+	if (ret < 0)
+		dev_dbg(pTAS2557->dev, "failed in spk ctrl\n");
 	if (pTAS2557->mpFirmware != NULL)
 		tas2557_clear_firmware(pTAS2557->mpFirmware);
+
+	pTAS2557->mpFirmware->mnPrograms = 0;
 }
 
 int tas2557_checkPLL(struct tas2557_priv *pTAS2557)
@@ -403,6 +620,11 @@ prog_coefficient:
 	}
 
 	if (bRestorePower) {
+		dev_dbg(pTAS2557->dev, "%s, set vboost, before power on %d\n",
+			__func__, pTAS2557->mnVBoostState);
+		nResult = tas2557_set_VBoost(pTAS2557, pTAS2557->mnVBoostState, false);
+		if (nResult < 0)
+			goto end;
 		pTAS2557->clearIRQ(pTAS2557);
 		dev_dbg(pTAS2557->dev, "device powered up, load startup\n");
 		nResult = tas2557_dev_load_data(pTAS2557, p_tas2557_startup_data);
@@ -432,6 +654,19 @@ prog_coefficient:
 	}
 end:
 
+	pTAS2557->mnNewConfiguration = pTAS2557->mnCurrentConfiguration;
+	return nResult;
+}
+
+int tas2557_update_edge(struct tas2557_priv *pTAS2557)
+{
+	int nResult = 0;
+	dev_dbg(pTAS2557->dev,
+		"%s, edge: %d\n",
+		__func__, pTAS2557->mnEdge);
+
+	nResult = pTAS2557->update_bits(pTAS2557, TAS2557_SPK_CTRL_REG, 0x7, pTAS2557->mnEdge);
+
 	return nResult;
 }
 
@@ -439,6 +674,7 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 {
 	int nResult = 0;
 	unsigned int nValue;
+	const char *pFWName;
 	struct TProgram *pProgram;
 
 	dev_info(pTAS2557->dev, "Enable: %d\n", bEnable);
@@ -446,8 +682,25 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 	if ((pTAS2557->mpFirmware->mnPrograms == 0)
 		|| (pTAS2557->mpFirmware->mnConfigurations == 0)) {
 		dev_err(pTAS2557->dev, "%s, firmware not loaded\n", __func__);
-		goto end;
+		/*Load firmware*/
+		if (pTAS2557->mnPGID == TAS2557_PG_VERSION_2P1) {
+			dev_info(pTAS2557->dev, "PG2.1 Silicon found\n");
+			pFWName = TAS2557_FW_NAME;
+		} else if (pTAS2557->mnPGID == TAS2557_PG_VERSION_1P0) {
+			dev_info(pTAS2557->dev, "PG1.0 Silicon found\n");
+			pFWName = TAS2557_PG1P0_FW_NAME;
+		} else {
+			nResult = -ENOTSUPP;
+			dev_info(pTAS2557->dev, "unsupport Silicon 0x%x\n", pTAS2557->mnPGID);
+			goto end;
+		}
+		nResult = request_firmware_nowait(THIS_MODULE, 1, pFWName,
+			pTAS2557->dev, GFP_KERNEL, pTAS2557, tas2557_fw_ready);
+		if(nResult < 0)
+			goto end;
+		dev_err(pTAS2557->dev, "%s, firmware is loaded\n", __func__);
 	}
+
 	/* check safe guard*/
 	nResult = pTAS2557->read(pTAS2557, TAS2557_SAFE_GUARD_REG, &nValue);
 	if (nResult < 0)
@@ -455,12 +708,19 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 	if ((nValue&0xff) != TAS2557_SAFE_GUARD_PATTERN) {
 		dev_err(pTAS2557->dev, "ERROR safe guard failure!\n");
 		nResult = -EPIPE;
+		pTAS2557->mnErrCode = ERROR_SAFE_GUARD;
+		pTAS2557->mbPowerUp = true;
 		goto end;
 	}
 
 	pProgram = &(pTAS2557->mpFirmware->mpPrograms[pTAS2557->mnCurrentProgram]);
 	if (bEnable) {
 		if (!pTAS2557->mbPowerUp) {
+			if (!pTAS2557->mbCalibrationLoaded) {
+				tas2557_set_calibration(pTAS2557, 0xFF);
+				pTAS2557->mbCalibrationLoaded = true;
+			}
+
 			if (pTAS2557->mbLoadConfigurationPrePowerUp) {
 				dev_dbg(pTAS2557->dev, "load coefficient before power\n");
 				pTAS2557->mbLoadConfigurationPrePowerUp = false;
@@ -468,6 +728,15 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 					pTAS2557->mnCurrentConfiguration, pTAS2557->mnNewConfiguration, false);
 				if (nResult < 0)
 					goto end;
+			}
+			
+			if (pTAS2557->mbLoadVBoostPrePowerUp) {
+				dev_dbg(pTAS2557->dev, "%s, cfg boost before power on new %d, current=%d\n",
+					__func__, pTAS2557->mnVBoostNewState, pTAS2557->mnVBoostState);
+				nResult = tas2557_set_VBoost(pTAS2557, pTAS2557->mnVBoostNewState, false);
+				if (nResult < 0)
+					goto end;
+				pTAS2557->mbLoadVBoostPrePowerUp = false;
 			}
 
 			pTAS2557->clearIRQ(pTAS2557);
@@ -488,6 +757,17 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 			if (nResult < 0)
 				goto end;
 
+			pTAS2557->mbPowerUp = true;
+
+			tas2557_get_die_temperature(pTAS2557, &nValue);
+			if(nValue == 0x80000000)
+			{
+				dev_err(pTAS2557->dev, "%s, thermal sensor is wrong, mute output\n", __func__);
+				nResult = tas2557_dev_load_data(pTAS2557, p_tas2557_shutdown_data);
+				pTAS2557->mbPowerUp = false;
+				goto end;
+			}
+
 			if (pProgram->mnAppMode == TAS2557_APP_TUNINGMODE) {
 				/* turn on IRQ */
 				pTAS2557->enableIRQ(pTAS2557, true, true);
@@ -497,7 +777,7 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 						ns_to_ktime((u64)LOW_TEMPERATURE_CHECK_PERIOD * NSEC_PER_MSEC), HRTIMER_MODE_REL);
 				}
 			}
-			pTAS2557->mbPowerUp = true;
+			pTAS2557->mnRestart = 0;
 		}
 	} else {
 		if (pTAS2557->mbPowerUp) {
@@ -514,6 +794,7 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 				goto end;
 
 			pTAS2557->mbPowerUp = false;
+			pTAS2557->mnRestart = 0;
 		}
 	}
 
@@ -521,10 +802,16 @@ int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable)
 
 end:
 	if (nResult < 0) {
-		if (pTAS2557->mnErrCode & (ERROR_DEVA_I2C_COMM | ERROR_PRAM_CRCCHK | ERROR_YRAM_CRCCHK))
+		if (pTAS2557->mnErrCode & (ERROR_DEVA_I2C_COMM | ERROR_PRAM_CRCCHK | ERROR_YRAM_CRCCHK | ERROR_SAFE_GUARD))
 			failsafe(pTAS2557);
 	}
-
+	else {
+		if ((pTAS2557->bob_fast_profile != UINT_MAX) &&
+		    (pTAS2557->bob_fast_profile ==
+		     pTAS2557->mnCurrentConfiguration)) {
+			force_vbob_pwm_mode(pTAS2557, pTAS2557->mbPowerUp);
+		}
+		}
 	return nResult;
 }
 
@@ -714,12 +1001,19 @@ static int fw_parse_data(struct tas2557_priv *pTAS2557, struct TFirmware *pFirmw
 
 	pImageData->mpBlocks =
 		kmalloc(sizeof(struct TBlock) * pImageData->mnBlocks, GFP_KERNEL);
+        if(pImageData->mpBlocks == NULL)
+        {
+                dev_dbg(pTAS2557->dev, "failed malloc blocks mem\n");
+                goto end;
+        }
 
 	for (nBlock = 0; nBlock < pImageData->mnBlocks; nBlock++) {
 		n = fw_parse_block_data(pTAS2557, pFirmware,
 			&(pImageData->mpBlocks[nBlock]), pData);
 		pData += n;
 	}
+	return pData - pDataStart;
+end:
 	return pData - pDataStart;
 }
 
@@ -772,6 +1066,12 @@ static int fw_parse_program_data(struct tas2557_priv *pTAS2557,
 
 	pFirmware->mpPrograms =
 		kmalloc(sizeof(struct TProgram) * pFirmware->mnPrograms, GFP_KERNEL);
+	if(pFirmware->mpPrograms == NULL)
+	{
+		dev_dbg(pTAS2557->dev, "failed malloc program mem\n");
+		goto end;
+	}
+
 	for (nProgram = 0; nProgram < pFirmware->mnPrograms; nProgram++) {
 		pProgram = &(pFirmware->mpPrograms[nProgram]);
 		memcpy(pProgram->mpName, pData, 64);
@@ -813,6 +1113,12 @@ static int fw_parse_configuration_data(struct tas2557_priv *pTAS2557,
 	pFirmware->mpConfigurations =
 		kmalloc(sizeof(struct TConfiguration) * pFirmware->mnConfigurations,
 		GFP_KERNEL);
+        if(pFirmware->mpConfigurations == NULL)
+        {
+                dev_dbg(pTAS2557->dev, "failed malloc configuration mem\n");
+                goto end;
+        }
+
 	for (nConfiguration = 0; nConfiguration < pFirmware->mnConfigurations;
 		nConfiguration++) {
 		pConfiguration = &(pFirmware->mpConfigurations[nConfiguration]);
@@ -873,6 +1179,12 @@ int fw_parse_calibration_data(struct tas2557_priv *pTAS2557,
 
 	pFirmware->mpCalibrations =
 		kmalloc(sizeof(struct TCalibration) * pFirmware->mnCalibrations, GFP_KERNEL);
+	if(pFirmware->mpCalibrations == NULL)
+	{
+		dev_err(pTAS2557->dev, "failed to malloc calibration mem\n");
+		goto end;
+	}
+
 	for (nCalibration = 0;
 		nCalibration < pFirmware->mnCalibrations;
 		nCalibration++) {
@@ -1466,7 +1778,12 @@ int tas2557_set_config(struct tas2557_priv *pTAS2557, int config)
 	}
 
 	nResult = tas2557_load_configuration(pTAS2557, nConfiguration, false);
-
+	
+	if ((pTAS2557->bob_fast_profile != UINT_MAX) && (pTAS2557->mbPowerUp)) {
+		force_vbob_pwm_mode(pTAS2557,
+				    pTAS2557->bob_fast_profile ==
+				    pTAS2557->mnCurrentConfiguration);
+	}
 end:
 
 	return nResult;
@@ -1534,13 +1851,13 @@ static int tas2557_load_calibration(struct tas2557_priv *pTAS2557,	char *pFileNa
 	unsigned char pBuffer[1000];
 	int nSize = 0;
 
-	dev_err(pTAS2557->dev, "%s:\n", __func__);
+	dev_dbg(pTAS2557->dev, "%s:\n", __func__);
 
 	fs = get_fs();
 	set_fs(KERNEL_DS);
 	nFile = sys_open(pFileName, O_RDONLY, 0);
 
-	dev_err(pTAS2557->dev, "TAS2557 calibration file = %s, handle = %d\n",
+	dev_info(pTAS2557->dev, "TAS2557 calibration file = %s, handle = %d\n",
 		pFileName, nFile);
 
 	if (nFile >= 0) {
@@ -1557,7 +1874,7 @@ static int tas2557_load_calibration(struct tas2557_priv *pTAS2557,	char *pFileNa
 		goto end;
 
 	tas2557_clear_firmware(pTAS2557->mpCalFirmware);
-	dev_err(pTAS2557->dev, "TAS2557 calibration file size = %d\n", nSize);
+	dev_info(pTAS2557->dev, "TAS2557 calibration file size = %d\n", nSize);
 	nResult = fw_parse(pTAS2557, pTAS2557->mpCalFirmware, pBuffer, nSize);
 
 	if (nResult)
@@ -1565,8 +1882,6 @@ static int tas2557_load_calibration(struct tas2557_priv *pTAS2557,	char *pFileNa
 	else
 		dev_info(pTAS2557->dev, "TAS2557 calibration: %d calibrations\n",
 			pTAS2557->mpCalFirmware->mnCalibrations);
-
-	printk("tsx_cal_reload_ok\n");
 end:
 
 	return nResult;
@@ -1833,12 +2148,19 @@ int tas2557_set_program(struct tas2557_priv *pTAS2557,
 		goto end;
 	pTAS2557->mnDevGain = nGain;
 	pTAS2557->mnDevCurrentGain = nGain;
+	pTAS2557->mnVBoostState = TAS2557_VBST_NEED_DEFAULT;
 
 	nResult = tas2557_load_coefficient(pTAS2557, -1, nConfiguration, false);
 	if (nResult < 0)
 		goto end;
 
+	tas2557_update_edge(pTAS2557);
+
 	if (pTAS2557->mbPowerUp) {
+		dev_info(pTAS2557->dev, "%s, load VBoost before power on %d\n", __func__, pTAS2557->mnVBoostState);
+		nResult = tas2557_set_VBoost(pTAS2557, pTAS2557->mnVBoostState, false);
+		if (nResult < 0)
+		goto end;
 		pTAS2557->clearIRQ(pTAS2557);
 		dev_dbg(pTAS2557->dev, "device powered up, load startup\n");
 		nResult = tas2557_dev_load_data(pTAS2557, p_tas2557_startup_data);
@@ -2011,6 +2333,20 @@ int tas2557_parse_dt(struct device *dev, struct tas2557_priv *pTAS2557)
 			"ti,bypass-tmax", np->full_name, rc);
 	else
 		pTAS2557->mbBypassTMax = (value > 0);
+
+	rc = of_property_read_u32(np, "ti,bob-fast-profile", &value);
+ 	if (rc) {
+		dev_dbg(pTAS2557->dev, "ti,bob-fast-profile not set\n");
+		pTAS2557->bob_fast_profile = UINT_MAX;
+	} else {
+		pTAS2557->bob_fast_profile = value;
+		dev_info(pTAS2557->dev, "ti,bob-fast-profile set to %d\n",
+			 pTAS2557->bob_fast_profile);
+		pTAS2557->vbob_regulator = devm_regulator_get(pTAS2557->dev,
+							      "pm660l_bob");
+		if (pTAS2557->vbob_regulator == NULL)
+			dev_err(pTAS2557->dev, "failed to get BoB regulator\n");
+	}
 
 end:
 

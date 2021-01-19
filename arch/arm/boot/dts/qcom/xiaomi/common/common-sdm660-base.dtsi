@@ -76,7 +76,9 @@
 		vcc_i2c-supply = <&pm660l_l6>;
 		ti,cdc-reset-gpio = <&tlmm 77 0>;
 		ti,irq-gpio = <&tlmm 73 0>;
-		ti,i2s-bits = <16>;
+		ti,i2s-bits = <32>;
+		ti,bypass-tmax = <0>;   /* 0, not bypass; 1, bypass */
+		ti,bob-fast-profile = <1>; /* 1:voice_handset */
 		status = "ok";
 	};
 
@@ -116,4 +118,9 @@
 
 &pm660l_l3 {
 	regulator-always-on;
+};
+
+/* sdm660-blsp.dtsi common diff */
+&i2c_1 {
+    qcom,clk-freq-out = <1000000>;
 };

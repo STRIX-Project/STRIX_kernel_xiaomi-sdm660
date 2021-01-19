@@ -358,6 +358,20 @@ extern struct workqueue_struct *system_freezable_wq;
 extern struct workqueue_struct *system_power_efficient_wq;
 extern struct workqueue_struct *system_freezable_power_efficient_wq;
 
+static inline struct workqueue_struct * __deprecated __system_nrt_wq(void)
+{
+	return system_wq;
+}
+
+static inline struct workqueue_struct * __deprecated __system_nrt_freezable_wq(void)
+{
+	return system_freezable_wq;
+}
+
+/* equivlalent to system_wq and system_freezable_wq, deprecated */
+#define system_nrt_wq			__system_nrt_wq()
+#define system_nrt_freezable_wq		__system_nrt_freezable_wq()
+
 extern struct workqueue_struct *
 __alloc_workqueue_key(const char *fmt, unsigned int flags, int max_active,
 	struct lock_class_key *key, const char *lock_name, ...) __printf(1, 6);
@@ -592,11 +606,12 @@ static inline bool schedule_delayed_work(struct delayed_work *dwork,
 }
 
 /**
- * keventd_up - is workqueue initialized yet?
+ * delayed_work_busy - See work_busy()
+ * @dwork: the delayed work to be tested
  */
-static inline bool keventd_up(void)
+static inline unsigned int delayed_work_busy(struct delayed_work *dwork)
 {
-	return system_wq != NULL;
+	return work_busy(&dwork->work);
 }
 
 #ifndef CONFIG_SMP

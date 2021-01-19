@@ -246,6 +246,35 @@ static struct tp_common_ops double_tap_ops = {
 };
 #endif
 
+static int fts_gesture_read(struct seq_file *file, void *v)
+{
+    seq_printf(file, "%d", fts_gesture_data.mode);
+    return 0;
+}
+
+static int fts_gesture_open(struct inode *inode, struct file *file)
+{
+    return single_open(file, fts_gesture_read, inode);
+}
+
+static ssize_t fts_gesture_write(struct file *file, const char __user *buf,
+             size_t count, loff_t *ppos)
+{
+    uint8_t str;
+    if(copy_from_user(&str, buf, 1)); // ignore
+    fts_gesture_data.mode = (str == '1');
+    return 1;
+}
+
+ static const struct file_operations fts_gesture_fops = {
+	.owner = THIS_MODULE,
+	.open = fts_gesture_open,
+	.write = fts_gesture_write,
+	.release = single_release,
+	.read = seq_read,
+	.llseek = seq_lseek,
+};
+
 /*****************************************************************************
 *   Name: fts_create_gesture_sysfs
 *  Brief:
@@ -294,6 +323,10 @@ static void fts_gesture_report(struct input_dev *input_dev, int gesture_id)
         break;
     case GESTURE_DOUBLECLICK:
         gesture = KEY_WAKEUP;
+        input_report_key(input_dev, KEY_DOUBLE_TAP, 1);
+        input_sync(input_dev);
+        input_report_key(input_dev, KEY_DOUBLE_TAP, 0);
+        input_sync(input_dev);
         break;
     case GESTURE_O:
         gesture = KEY_GESTURE_O;
@@ -573,6 +606,7 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
 
     FTS_FUNC_ENTER();
     input_set_capability(input_dev, EV_KEY, KEY_WAKEUP);
+    input_set_capability(input_dev, EV_KEY, KEY_DOUBLE_TAP);   
     input_set_capability(input_dev, EV_KEY, KEY_GESTURE_U);
     input_set_capability(input_dev, EV_KEY, KEY_GESTURE_UP);
     input_set_capability(input_dev, EV_KEY, KEY_GESTURE_DOWN);
@@ -604,6 +638,7 @@ int fts_gesture_init(struct fts_ts_data *ts_data)
     __set_bit(KEY_GESTURE_Z, input_dev->keybit);
 
     fts_create_gesture_sysfs(client);
+    proc_create("wake_node", 0666, NULL, &fts_gesture_fops);
 
 #ifdef CONFIG_TOUCHSCREEN_COMMON
        ret = tp_common_set_double_tap_ops(&double_tap_ops);

@@ -38,7 +38,13 @@
 #include "mdss_debug.h"
 #include "mdss_dsi_phy.h"
 #include "mdss_dba_utils.h"
+#ifdef CONFIG_FB_MSM_MDSS_LIVEDISPLAY
 #include "mdss_livedisplay.h"
+#endif
+
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#endif
 
 #define CMDLINE_DSI_CTL_NUM_STRING_LEN 2
 
@@ -49,11 +55,6 @@ static struct mdss_dsi_data *mdss_dsi_res;
 #define DSI_ENABLE_PC_LATENCY PM_QOS_DEFAULT_VALUE
 
 static struct pm_qos_request mdss_dsi_pm_qos_request;
-
-#ifdef CONFIG_MACH_LONGCHEER
-extern int mdss_first_set_feature(struct mdss_panel_data *pdata,int first_ce_state,int first_cabc_state,int first_srgb_state,int first_gamma_state,
-		int first_cabc_movie_state,int first_cabc_still_state);
-#endif
 
 #ifdef DSI_ACCESS
 static ssize_t dsi_access_sysfs_read_show(struct device *dev,
@@ -694,18 +695,11 @@ static int mdss_dsi_panel_power_lp(struct mdss_panel_data *pdata, int enable)
 	return 0;
 }
 
-#ifdef CONFIG_MACH_LONGCHEER
-extern bool ESD_TE_status;
-#endif
-
 static int mdss_dsi_panel_power_ctrl(struct mdss_panel_data *pdata,
 	int power_state)
 {
 	int ret = 0;
 	struct mdss_panel_info *pinfo;
-#ifdef CONFIG_MACH_LONGCHEER
-	struct mdss_dsi_ctrl_pdata *ctrl_pdata = NULL;
-#endif
 
 	if (pdata == NULL) {
 		pr_err("%s: Invalid input data\n", __func__);
@@ -735,53 +729,17 @@ static int mdss_dsi_panel_power_ctrl(struct mdss_panel_data *pdata,
 		if ((pinfo->panel_power_state != MDSS_PANEL_POWER_LCD_DISABLED)
 		     && (pinfo->panel_power_state != MDSS_PANEL_POWER_OFF))
 			ret = mdss_dsi_panel_power_off(pdata);
+#ifdef CONFIG_STATE_NOTIFIER
+		state_suspend();
+#endif
 		break;
 	case MDSS_PANEL_POWER_ON:
 		if (mdss_dsi_is_panel_on_lp(pdata))
 			ret = mdss_dsi_panel_power_lp(pdata, false);
 		else
-#ifdef CONFIG_MACH_LONGCHEER
-		{
-			if (ESD_TE_status) {
-				ctrl_pdata = container_of(pdata, struct mdss_dsi_ctrl_pdata,
-							panel_data);
-
-				ret = mdss_dsi_panel_reset(pdata, 0);
-				if (ret) {
-					pr_warn("%s: Panel reset failed. rc=%d\n", __func__, ret);
-					ret = 0;
-				}
-				if (mdss_dsi_pinctrl_set_state(ctrl_pdata, false))
-					pr_debug("reset disable:pinctrl not enable \n");
-
-				ret = msm_dss_enable_vreg(ctrl_pdata->panel_power_data.vreg_config,
-						ctrl_pdata->panel_power_data.num_vreg, 0);
-				if (ret)
-					pr_err("%s:failed to disable vreg for %s\n", __func__, __mdss_dsi_pm_name(DSI_PANEL_PM));
-				msleep(10);
-				mdss_dsi_panel_reset(pdata, 1);
-				msleep(10);
-				mdss_dsi_panel_reset(pdata, 0);
-				msleep(1);
-				mdss_dsi_panel_reset(pdata, 1);
-				msleep(10);
-				mdss_dsi_panel_reset(pdata, 0);
-				msleep(300);
-				mdss_dsi_panel_reset(pdata, 1);
-				msleep(20);
-				mdss_dsi_panel_reset(pdata, 0);
-				msleep(20);
-				mdss_dsi_panel_reset(pdata, 1);
-				msleep(20);
-				mdss_dsi_panel_reset(pdata, 0);
-				printk("nova panel reset\n");
-
-				ESD_TE_status = false;
-			}
-#endif
 			ret = mdss_dsi_panel_power_on(pdata);
-#ifdef CONFIG_MACH_LONGCHEER
-		}
+#ifdef CONFIG_STATE_NOTIFIER
+		state_resume();
 #endif
 		break;
 	case MDSS_PANEL_POWER_LP1:
@@ -1765,9 +1723,9 @@ static int mdss_dsi_update_panel_config(struct mdss_dsi_ctrl_pdata *ctrl_pdata,
 	} else {	/*video mode*/
 		pinfo->mipi.mode = DSI_VIDEO_MODE;
 		pinfo->type = MIPI_VIDEO_PANEL;
-		pinfo->mipi.vsync_enable = 0;
-		pinfo->mipi.hw_vsync_mode = 0;
-		pinfo->partial_update_enabled = 0;
+		pinfo->mipi.vsync_enable = 1;
+		pinfo->mipi.hw_vsync_mode = 1;
+		pinfo->partial_update_enabled = pinfo->partial_update_supported;
 	}
 
 	ctrl_pdata->panel_mode = pinfo->mipi.mode;
@@ -2202,13 +2160,7 @@ static int mdss_dsi_unblank(struct mdss_panel_data *pdata)
 		}
 	}
 
-#if defined(CONFIG_MACH_XIAOMI_LAVENDER) || defined(CONFIG_MACH_XIAOMI_TULIP) || defined(CONFIG_MACH_XIAOMI_WAYNE) || defined(CONFIG_MACH_XIAOMI_WHYRED)
-#else
-	mdss_first_set_feature(pdata, -1, 1, -1, -1, -1, -1);
-#endif
-
-        if ((pdata->panel_info.type == MIPI_CMD_PANEL) &&
-                mipi->vsync_enable && mipi->hw_vsync_mode) {
+	if (mipi->vsync_enable && mipi->hw_vsync_mode) {
 		mdss_dsi_set_tear_on(ctrl_pdata);
 		if (mdss_dsi_is_te_based_esd(ctrl_pdata))
 			panel_update_te_irq(pdata, true);
@@ -2279,8 +2231,7 @@ static int mdss_dsi_blank(struct mdss_panel_data *pdata, int power_state)
 		}
 	}
 
-	if ((pdata->panel_info.type == MIPI_CMD_PANEL) &&
-		mipi->vsync_enable && mipi->hw_vsync_mode) {
+	if (mipi->vsync_enable && mipi->hw_vsync_mode) {
 		if (mdss_dsi_is_te_based_esd(ctrl_pdata)) {
 			panel_update_te_irq(pdata, false);
 			atomic_dec(&ctrl_pdata->te_irq_ready);
@@ -3689,9 +3640,11 @@ static int mdss_dsi_event_handler(struct mdss_panel_data *pdata,
 					rc);
 		}
 		break;
+#ifdef CONFIG_FB_MSM_MDSS_LIVEDISPLAY
 	case MDSS_EVENT_UPDATE_LIVEDISPLAY:
 		rc = mdss_livedisplay_update(ctrl_pdata, (int)(unsigned long) arg);
 		break;
+#endif
 	default:
 		pr_debug("%s: unhandled event=%d\n", __func__, event);
 		break;
@@ -4266,8 +4219,7 @@ static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
 	pdata = &ctrl_pdata->panel_data;
 	init_completion(&pdata->te_done);
 	mutex_init(&pdata->te_mutex);
-	if (pdata->panel_info.type == MIPI_CMD_PANEL) {
-		if (!te_irq_registered) {
+	if (!te_irq_registered) {
 			rc = devm_request_irq(&pdev->dev,
 				gpio_to_irq(pdata->panel_te_gpio),
 				test_hw_vsync_handler, IRQF_TRIGGER_FALLING,
@@ -4279,7 +4231,6 @@ static int mdss_dsi_ctrl_probe(struct platform_device *pdev)
 			te_irq_registered = 1;
 			disable_irq_nosync(gpio_to_irq(pdata->panel_te_gpio));
 		}
-	}
 
 	rc = mdss_dsi_get_bridge_chip_params(pinfo, ctrl_pdata, pdev);
 	if (rc) {

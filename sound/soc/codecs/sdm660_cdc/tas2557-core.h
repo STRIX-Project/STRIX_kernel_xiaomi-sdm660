@@ -62,6 +62,8 @@ struct TYCRC {
 
 int tas2557_enable(struct tas2557_priv *pTAS2557, bool bEnable);
 int tas2557_SA_DevChnSetup(struct tas2557_priv *pTAS2557, unsigned int mode);
+int tas2557_set_VBoost(struct tas2557_priv *pTAS2557, int vboost, bool bPowerUp);
+int tas2557_get_VBoost(struct tas2557_priv *pTAS2557, int *pVBoost);
 int tas2557_get_die_temperature(struct tas2557_priv *pTAS2557, int *pTemperature);
 int tas2557_set_sampling_rate(struct tas2557_priv *pTAS2557, unsigned int nSamplingRate);
 int tas2557_set_bit_rate(struct tas2557_priv *pTAS2557, unsigned int nBitRate);
@@ -76,4 +78,5 @@ int tas2557_parse_dt(struct device *dev, struct tas2557_priv *pTAS2557);
 int tas2557_get_DAC_gain(struct tas2557_priv *pTAS2557, unsigned char *pnGain);
 int tas2557_set_DAC_gain(struct tas2557_priv *pTAS2557, unsigned int nGain);
 int tas2557_configIRQ(struct tas2557_priv *pTAS2557);
+int tas2557_update_edge(struct tas2557_priv *pTAS2557);
 #endif /* _TAS2557_CORE_H */

@@ -10,7 +10,11 @@
  * GNU General Public License for more details.
  */
 
+#ifdef CONFIG_MACH_LONGCHEER
+#define pr_fmt(fmt) "lct QCOM-BATT: %s: " fmt, __func__
+#else
 #define pr_fmt(fmt) "QCOM-BATT: %s: " fmt, __func__
+#endif
 
 #include <linux/device.h>
 #include <linux/delay.h>
@@ -90,11 +94,7 @@ enum print_reason {
 	PR_PARALLEL	= BIT(0),
 };
 
-#ifdef CONFIG_MACH_LONGCHEER
-static int debug_mask = 0xff;
-#else
 static int debug_mask;
-#endif
 module_param_named(debug_mask, debug_mask, int, S_IRUSR | S_IWUSR);
 
 #define pl_dbg(chip, reason, fmt, ...)				\

@@ -161,6 +161,7 @@
 #define TAS2557_CLKOUT_CDIV_REG			TAS2557_REG(0, 1, 118)
 #define TAS2557_HACK_GP01_REG			TAS2557_REG(0, 1, 122)
 
+#define TAS2557_SLEEPMODE_CTL_REG		TAS2557_REG(0, 2, 7)
 #define TAS2557_HACK01_REG			TAS2557_REG(0, 2, 10)
 
 #define TAS2557_ISENSE_THRESHOLD		TAS2557_REG(0, 50, 104)
@@ -176,6 +177,7 @@
 
 #define TAS2557_TEST_MODE_REG			TAS2557_REG(0, 253, 13)	/* B0_P0xfd_R0x0d */
 #define TAS2557_BROADCAST_REG			TAS2557_REG(0, 253, 54)	/* B0_P0xfd_R0x36 */
+#define TAS2557_VBST_VOLT_REG			TAS2557_REG(0, 253, 58)
 #define TAS2557_CRYPTIC_REG			TAS2557_REG(0, 253, 71)
 #define TAS2557_PG2P1_CALI_R0_REG		TAS2557_REG(0x8c, 0x2f, 0x40)
 #define TAS2557_PG1P0_CALI_R0_REG		TAS2557_REG(0x8c, 0x2f, 0x28)
@@ -195,6 +197,7 @@
 #define TAS2557_RAMP_CLK_DIV_MSB_REG		TAS2557_REG(100, 0, 43)
 #define TAS2557_RAMP_CLK_DIV_LSB_REG		TAS2557_REG(100, 0, 44)
 
+#define TAS2557_VBOOST_CTL_REG		TAS2557_REG(100, 0, 64)
 #define TAS2557_DIE_TEMP_REG			TAS2557_REG(130, 2, 124)	/* B0x82_P0x02_R0x7C */
 
 /* Bits */
@@ -304,6 +307,18 @@
 #define	TAS2557_BOOST_DEVB		2
 #define	TAS2557_BOOST_BOTH		3
 
+#define	TAS2557_VBST_DEFAULT		0	/* firmware default */
+#define	TAS2557_VBST_A_ON			1	/* DevA always 8.5V, DevB default */
+#define	TAS2557_VBST_B_ON			2	/* DevA default, DevB always 8.5V */
+#define	TAS2557_VBST_A_ON_B_ON		(TAS2557_VBST_A_ON | TAS2557_VBST_B_ON)	/* both DevA and DevB always 8.5V */
+#define	TAS2557_VBST_NEED_DEFAULT	0xff	/* need default value */
+
+#define	TAS2557_VBST_8P5V	0	/* coresponding PPG 0dB */
+#define	TAS2557_VBST_8P1V	1	/* coresponding PPG -1dB */
+#define	TAS2557_VBST_7P6V	2	/* coresponding PPG -2dB */
+#define	TAS2557_VBST_6P6V	3	/* coresponding PPG -3dB */
+#define	TAS2557_VBST_5P6V	4	/* coresponding PPG -4dB */
+
 #define	ERROR_NONE			0x00000000
 #define	ERROR_PLL_ABSENT	0x00000001
 #define	ERROR_DEVA_I2C_COMM	0x00000002
@@ -318,6 +333,7 @@
 #define	ERROR_UNDER_VOLTAGE	0x00000800
 #define	ERROR_OVER_CURRENT	0x00001000
 #define	ERROR_CLASSD_PWR	0x00002000
+#define	ERROR_SAFE_GUARD	0x00004000
 #define	ERROR_FAILSAFE		0x40000000
 
 struct TBlock {
@@ -453,6 +469,12 @@ struct tas2557_priv {
 	bool mbIRQEnable;
 	unsigned char mnI2SBits;
 
+	unsigned int mnVBoostState;
+	bool mbLoadVBoostPrePowerUp;
+	unsigned int mnVBoostVoltage;
+	unsigned int mnVBoostNewState;
+	unsigned int mnVBoostDefaultCfg[2];
+
 
 	/* for low temperature check */
 	unsigned int mnDevGain;
@@ -465,11 +487,17 @@ struct tas2557_priv {
 	bool mbRuntimeSuspend;
 
 	unsigned int mnErrCode;
+	unsigned int mnRestart;
 
 	/* for configurations with maximum TLimit 0x7fffffff,
 	 * bypass calibration update, usually used in factory test
 	*/
 	bool mbBypassTMax;
+
+	unsigned int bob_fast_profile;
+	struct regulator *vbob_regulator;
+
+	unsigned int mnEdge;
 
 #ifdef CONFIG_TAS2557_CODEC
 	struct mutex codec_lock;
