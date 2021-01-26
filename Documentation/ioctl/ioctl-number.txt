@@ -225,6 +225,7 @@ Code  Seq#(hex)	Include File		Comments
 'f'	00-0F	fs/ocfs2/ocfs2_fs.h	conflict!
 'g'	00-0F	linux/usb/gadgetfs.h
 'g'	20-2F	linux/usb/g_printer.h
+'g'	30-3F	include/uapi/linux/incrementalfs.h
 'h'	00-7F				conflict! Charon filesystem
 					<mailto:zapman@interlan.net>
 'h'	00-1F	linux/hpet.h		conflict!

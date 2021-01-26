@@ -5444,6 +5444,13 @@ F:	Documentation/hwmon/ina2xx
 F:	drivers/hwmon/ina2xx.c
 F:	include/linux/platform_data/ina2xx.h
 
+INCREMENTAL FILESYSTEM
+M:	Eugene Zemtsov <ezemtsov@google.com>
+S:	Supported
+F:	fs/incfs/
+F:	include/uapi/linux/incrementalfs.h
+F:	Documentation/filesystems/incrementalfs.rst
+
 INDUSTRY PACK SUBSYSTEM (IPACK)
 M:	Samuel Iglesias Gonsalvez <siglesias@igalia.com>
 M:	Jens Taprogge <jens.taprogge@taprogge.org>

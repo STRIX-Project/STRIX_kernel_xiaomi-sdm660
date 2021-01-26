@@ -1,0 +1,10 @@
+config INCREMENTAL_FS
+	tristate "Incremental file system support"
+	depends on BLOCK && CRC32
+	help
+	  Incremental FS is a read-only virtual file system that facilitates execution
+	  of programs while their binaries are still being lazily downloaded over the
+	  network, USB or pigeon post.
+
+	  To compile this file system support as a module, choose M here: the
+	  module will be called incrementalfs.
