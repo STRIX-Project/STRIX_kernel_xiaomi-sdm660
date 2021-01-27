@@ -10,6 +10,7 @@
  * GNU General Public License for more details.
  */
 #include "common/common-sdm660-base.dtsi"
+#include "common/common-sdm660-others.dtsi"
 #include "wayne/wayne-common-base.dtsi"
 
 &firmware {

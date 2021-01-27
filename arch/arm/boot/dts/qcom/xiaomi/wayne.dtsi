@@ -11,6 +11,7 @@
  */
 
 #include "common/common-sdm660-base.dtsi"
+#include "common/common-sdm660-others.dtsi"
 #include "wayne/wayne-common-base.dtsi"
 
 /* sdm660.dtsi wayne specific diff */

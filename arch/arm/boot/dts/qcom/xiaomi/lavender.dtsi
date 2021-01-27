@@ -11,4 +11,5 @@
  */
 
 #include "common/common-sdm660-base.dtsi"
+#include "common/common-sdm660-others.dtsi"
 #include "lavender/lavender-base.dtsi"

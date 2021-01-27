@@ -12,4 +12,5 @@
 
 #include "common/common-sdm660-base.dtsi"
 #include "common/common-sdm636.dtsi"
+#include "common/common-sdm636-others.dtsi"
 #include "tulip/tulip-base.dtsi"

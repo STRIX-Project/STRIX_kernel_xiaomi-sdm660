@@ -1,0 +1,67 @@
+/* Copyright (c) 2016-2019, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/* sdm660.dtsi tulip/whyred specific diff */
+/ {
+	energy_costs: energy-costs {
+		compatible = "sched-energy";
+
+		CPU_COST_0: core-cost0 {
+			busy-cost-data = <
+				 633600    4
+				 902400   11
+				1113600   19
+				1401600   33
+				1536000   42
+				1612800   48
+			>;
+			idle-cost-data = <
+				20 16 12 8
+			>;
+		};
+		CPU_COST_1: core-cost1 {
+			busy-cost-data = <
+				1113600   66
+				1401600  104
+				1747200  169
+				1804800  180
+			>;
+			idle-cost-data = <
+				100 80 60 40
+			>;
+		};
+		CLUSTER_COST_0: cluster-cost0 {
+			busy-cost-data = <
+				 633600 3
+				 902400 8
+				1113600 13
+				1401600 23
+				1536000 32
+				1612800 39
+			>;
+			idle-cost-data = <
+				4 3 2 1
+			>;
+		};
+		CLUSTER_COST_1: cluster-cost1 {
+			busy-cost-data = <
+				1113600 34
+				1401600 63
+				1747200 111
+				1804800 178
+			>;
+			idle-cost-data = <
+				4 3 2 1
+			>;
+		};
+	};
+};

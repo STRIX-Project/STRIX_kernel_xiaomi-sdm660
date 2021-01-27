@@ -295,59 +295,6 @@
 		};
 	};
 
-	energy_costs: energy-costs {
-		compatible = "sched-energy";
-
-		CPU_COST_0: core-cost0 {
-			busy-cost-data = <
-				 633600    4
-				 902400   11
-				1113600   19
-				1401600   33
-				1536000   42
-				1612800   48
-			>;
-			idle-cost-data = <
-				20 16 12 8
-			>;
-		};
-		CPU_COST_1: core-cost1 {
-			busy-cost-data = <
-				1113600   66
-				1401600  104
-				1747200  169
-				1804800  180
-			>;
-			idle-cost-data = <
-				100 80 60 40
-			>;
-		};
-		CLUSTER_COST_0: cluster-cost0 {
-			busy-cost-data = <
-				 633600 3
-				 902400 8
-				1113600 13
-				1401600 23
-				1536000 32
-				1612800 39
-			>;
-			idle-cost-data = <
-				4 3 2 1
-			>;
-		};
-		CLUSTER_COST_1: cluster-cost1 {
-			busy-cost-data = <
-				1113600 34
-				1401600 63
-				1747200 111
-				1804800 178
-			>;
-			idle-cost-data = <
-				4 3 2 1
-			>;
-		};
-	};
-
 	clocks {
 		xo_board {
 			compatible = "fixed-clock";
