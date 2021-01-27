@@ -2882,7 +2882,7 @@ static void populate_debugfs_dir(struct clk_osm *c)
 	if (osm_debugfs_base == NULL) {
 		osm_debugfs_base = debugfs_create_dir("osm", NULL);
 		if (IS_ERR_OR_NULL(osm_debugfs_base)) {
-			pr_err("osm debugfs base directory creation failed\n");
+			pr_debug("osm debugfs base directory creation failed\n");
 			osm_debugfs_base = NULL;
 			return;
 		}
@@ -2890,7 +2890,7 @@ static void populate_debugfs_dir(struct clk_osm *c)
 
 	c->debugfs = debugfs_create_dir(c->hw.init->name, osm_debugfs_base);
 	if (IS_ERR_OR_NULL(c->debugfs)) {
-		pr_err("osm debugfs directory creation failed\n");
+		pr_debug("osm debugfs directory creation failed\n");
 		return;
 	}
 
