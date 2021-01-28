@@ -110,3 +110,9 @@
 	qcom,mdss-dsi-bl-max-level = <4095>;
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
 };
+
+/* sdm636.dtsi tulip/whyred spesific diff */
+&msm_gpu {
+	/* Use GPU chipid from A512 */
+	qcom,chipid = <0x05010200>;
+};
