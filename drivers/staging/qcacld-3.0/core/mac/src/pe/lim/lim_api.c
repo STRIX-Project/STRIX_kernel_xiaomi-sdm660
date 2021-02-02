@@ -63,8 +63,6 @@
 #include "cds_concurrency.h"
 #include "nan_datapath.h"
 
-#define NO_SESSION 0xff
-
 static void __lim_init_scan_vars(tpAniSirGlobal pMac)
 {
 	pMac->lim.gLimUseScanModeForLearnMode = 1;
@@ -2431,6 +2429,7 @@ void lim_update_lost_link_info(tpAniSirGlobal mac, tpPESession session,
 	lim_sys_process_mmh_msg_api(mac, &mmh_msg, ePROT);
 }
 
+#ifdef TRACE_RECORD
 QDF_STATUS pe_acquire_global_lock(tAniSirLim *psPe)
 {
 	QDF_STATUS status = QDF_STATUS_E_INVAL;
@@ -2456,6 +2455,7 @@ QDF_STATUS pe_release_global_lock(tAniSirLim *psPe)
 	}
 	return status;
 }
+#endif
 
 /**
  * lim_mon_init_session() - create PE session for monitor mode operation
