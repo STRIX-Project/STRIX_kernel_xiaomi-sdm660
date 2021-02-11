@@ -1384,7 +1384,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 
 	ret = init_lct_tp_gesture(lct_tp_gesture_node_callback);
 	if (ret < 0) {
-		NVT_ERR("Failed to add /proc/tp_work node!\n");
+		NVT_ERR("Failed to add /proc/tp_gesture node!\n");
 	}
 
 #if NVT_TOUCH_PROC
