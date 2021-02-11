@@ -33,6 +33,7 @@
 #include <linux/fb.h>
 
 #include "nt36xxx.h"
+#include "../lct_tp_gesture.h"
 
 extern bool tianma_jdi_flag;
 
@@ -1171,6 +1172,21 @@ out:
 	return ret;
 }
 
+static int lct_tp_gesture_node_callback(bool flag)
+{
+	if (suspend_state) {
+		NVT_ERR("ERROR: TP is suspend!\n");
+		return -1;
+	}
+	if (flag) {
+		enable_gesture_mode = true;
+		NVT_LOG("enable gesture mode\n");
+	} else {
+		enable_gesture_mode = false;
+		NVT_LOG("disable gesture mode\n");
+	}
+	return 0;
+}
 
 /*******************************************************
 Description:
@@ -1366,7 +1382,10 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	queue_delayed_work(nvt_fwu_wq, &ts->nvt_fwu_work, msecs_to_jiffies(14000));
 #endif
 
-
+	ret = init_lct_tp_gesture(lct_tp_gesture_node_callback);
+	if (ret < 0) {
+		NVT_ERR("Failed to add /proc/tp_work node!\n");
+	}
 
 #if NVT_TOUCH_PROC
 	ret = nvt_flash_proc_init();
