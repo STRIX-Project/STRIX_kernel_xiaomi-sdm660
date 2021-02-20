@@ -9,6 +9,7 @@
 #include <linux/fb.h>
 #include <linux/input.h>
 #include <linux/kthread.h>
+#include <linux/sched/sysctl.h>
 
 enum {
 	SCREEN_OFF,
@@ -98,6 +99,8 @@ void devfreq_boost_kick_max(enum df_device device, unsigned int duration_ms)
 {
 	struct df_boost_drv *d = &df_boost_drv_g;
 
+	sysctl_sched_energy_aware = 0;
+
 	__devfreq_boost_kick_max(d->devices + device, duration_ms);
 }
 
@@ -127,6 +130,8 @@ static void devfreq_max_unboost(struct work_struct *work)
 
 	clear_bit(MAX_BOOST, &b->state);
 	wake_up(&b->boost_waitq);
+
+	sysctl_sched_energy_aware = 1;
 }
 
 static void devfreq_update_boosts(struct boost_dev *b, unsigned long state)
