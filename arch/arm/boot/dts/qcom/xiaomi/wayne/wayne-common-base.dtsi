@@ -71,9 +71,6 @@
 
 /* sdm660-mtp.dtsi wayne specific diff */
 &mtp_batterydata {
-	/delete-node/ qcom,itech_3000mah;
-	/delete-node/ qcom,ascent_3450mah;
-
 	#include "fg-gen3-batterydata-l8866sun-3000mah.dtsi"
 	#include "fg-gen3-batterydata-l8866cos-3000mah.dtsi"
 	#include "fg-gen3-batterydata-l8866default-3000mah.dtsi"
