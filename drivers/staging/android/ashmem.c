@@ -11,6 +11,7 @@
 #include <linux/mman.h>
 #include <linux/shmem_fs.h>
 #include "ashmem.h"
+#include <uapi/linux/personality.h>
 
 /**
  * struct ashmem_area - The anonymous shared memory area
@@ -107,7 +108,7 @@ static ssize_t ashmem_read_iter(struct kiocb *iocb, struct iov_iter *iter)
 	 * be destroyed until all references to the file are dropped and
 	 * ashmem_release is called.
 	 */
-	ret = vfs_iter_read(vmfile, iter, &iocb->ki_pos, 0);
+	ret = vfs_iter_read(vmfile, iter, &iocb->ki_pos);
 	if (ret > 0)
 		vmfile->f_pos = iocb->ki_pos;
 	return ret;
