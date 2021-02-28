@@ -5102,7 +5102,7 @@ static int __init kgsl_core_init(void)
 
 	init_kthread_worker(&kgsl_driver.worker);
 
-	kgsl_driver.worker_thread = kthread_run_perf_critical(kthread_worker_fn,
+	kgsl_driver.worker_thread = kthread_run_perf_critical(cpu_perf_mask, kthread_worker_fn,
 		&kgsl_driver.worker, "kgsl_worker_thread");
 
 	if (IS_ERR(kgsl_driver.worker_thread)) {
