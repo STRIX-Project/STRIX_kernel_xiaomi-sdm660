@@ -4014,12 +4014,6 @@ static ssize_t mdss_mdp_cmd_autorefresh_store(struct device *dev,
 	struct msm_fb_data_type *mfd = (struct msm_fb_data_type *)fbi->par;
 	struct mdss_mdp_ctl *ctl;
 
-	/*
-	 * The event timer was killed due to messing with pm qos, and no one
-	 * uses autorefresh anyway.
-	 */
-	return -EINVAL;
-
 	if (!mfd) {
 		pr_err("Invalid mfd structure\n");
 		rc = -EINVAL;
@@ -6281,7 +6275,7 @@ static int __vsync_retire_setup(struct msm_fb_data_type *mfd)
 	init_kthread_worker(&mdp5_data->worker);
 	init_kthread_work(&mdp5_data->vsync_work, __vsync_retire_work_handler);
 
-	mdp5_data->thread = kthread_run_perf_critical(kthread_worker_fn,
+	mdp5_data->thread = kthread_run_perf_critical(cpu_perf_mask, kthread_worker_fn,
 					&mdp5_data->worker, "vsync_retire_work");
 
 	if (IS_ERR(mdp5_data->thread)) {
@@ -6627,8 +6621,6 @@ int mdss_mdp_overlay_init(struct msm_fb_data_type *mfd)
 
 	mdss_irq = mdss_intr_line();
 
-	/* This is for an unused feature (autorefresh) and breaks pm qos */
-#if 0
 	/* Adding event timer only for primary panel */
 	if ((mfd->index == 0) && (mfd->panel_info->type != WRITEBACK_PANEL)) {
 		mdp5_data->cpu_pm_hdl = add_event_timer(mdss_irq->irq,
@@ -6636,7 +6628,6 @@ int mdss_mdp_overlay_init(struct msm_fb_data_type *mfd)
 		if (!mdp5_data->cpu_pm_hdl)
 			pr_warn("%s: unable to add event timer\n", __func__);
 	}
-#endif
 
 	if (mfd->panel_info->cont_splash_enabled) {
 		rc = mdss_mdp_overlay_handoff(mfd);
