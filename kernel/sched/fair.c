@@ -5113,7 +5113,9 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 #ifdef CONFIG_SMP
 	int task_new = flags & ENQUEUE_WAKEUP_NEW;
 #endif
+#ifdef CONFIG_SCHED_TUNE
 	bool prefer_idle = schedtune_prefer_idle(p) > 0;
+#endif
 
 	/*
 	 * The code below (indirectly) updates schedutil which looks at
@@ -7455,8 +7457,10 @@ static int find_energy_efficient_cpu(struct task_struct *p, int prev_cpu)
 	if (!task_util(p))
 		goto unlock;
 
+#ifdef CONFIG_SCHED_TUNE
 	prefer_idle = schedtune_prefer_idle(p);
 	boosted = schedtune_task_boost(p) > 0;
+#endif
 	target_cap = boosted ? 0 : ULONG_MAX;
 
 	for (; pd; pd = pd->next) {
