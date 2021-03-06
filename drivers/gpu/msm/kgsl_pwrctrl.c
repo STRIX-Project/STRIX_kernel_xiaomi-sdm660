@@ -838,19 +838,12 @@ static ssize_t kgsl_pwrctrl_gpuclk_show(struct device *dev,
 				    struct device_attribute *attr,
 				    char *buf)
 {
-	unsigned long freq;
 	struct kgsl_device *device = kgsl_device_from_dev(dev);
 	struct kgsl_pwrctrl *pwr;
 	if (device == NULL)
 		return 0;
 	pwr = &device->pwrctrl;
-
-	if (device->state == KGSL_STATE_SLUMBER)
-		freq = pwr->pwrlevels[pwr->num_pwrlevels - 1].gpu_freq;
-	else
-		freq = kgsl_pwrctrl_active_freq(pwr);
-
-	return snprintf(buf, PAGE_SIZE, "%lu\n", freq);
+	return snprintf(buf, PAGE_SIZE, "%ld\n", kgsl_pwrctrl_active_freq(pwr));
 }
 
 static ssize_t __timer_store(struct device *dev, struct device_attribute *attr,
@@ -1288,19 +1281,13 @@ static ssize_t kgsl_pwrctrl_clock_mhz_show(struct device *dev,
 				    struct device_attribute *attr,
 				    char *buf)
 {
-	unsigned long freq;
 	struct kgsl_device *device = kgsl_device_from_dev(dev);
-	struct kgsl_pwrctrl *pwr;
+
 	if (device == NULL)
 		return 0;
-	pwr = &device->pwrctrl;
 
-	if (device->state == KGSL_STATE_SLUMBER)
-		freq = pwr->pwrlevels[pwr->num_pwrlevels - 1].gpu_freq;
-	else
-		freq = kgsl_pwrctrl_active_freq(pwr);
-
-	return snprintf(buf, PAGE_SIZE, "%lu\n", freq / 1000000);
+	return snprintf(buf, PAGE_SIZE, "%ld\n",
+			kgsl_pwrctrl_active_freq(&device->pwrctrl) / 1000000);
 }
 
 static ssize_t kgsl_pwrctrl_freq_table_mhz_show(
@@ -2654,6 +2641,7 @@ _slumber(struct kgsl_device *device)
 		kgsl_pwrctrl_clk_set_options(device, false);
 		kgsl_pwrctrl_disable(device);
 		kgsl_pwrscale_sleep(device);
+		kgsl_pwrctrl_irq(device, KGSL_PWRFLAGS_OFF);
 		kgsl_pwrctrl_set_state(device, KGSL_STATE_SLUMBER);
 		pm_qos_update_request(&device->pwrctrl.pm_qos_req_dma,
 						PM_QOS_DEFAULT_VALUE);
