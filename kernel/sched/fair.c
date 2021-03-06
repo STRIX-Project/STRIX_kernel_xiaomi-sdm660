@@ -5115,6 +5115,8 @@ enqueue_task_fair(struct rq *rq, struct task_struct *p, int flags)
 #endif
 #ifdef CONFIG_SCHED_TUNE
 	bool prefer_idle = schedtune_prefer_idle(p) > 0;
+#elif CONFIG_UCLAMP_TASK
+	bool prefer_idle = uclamp_latency_sensitive(p);
 #endif
 
 	/*
