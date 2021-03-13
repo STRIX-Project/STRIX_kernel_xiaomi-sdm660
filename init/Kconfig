@@ -397,11 +397,9 @@ config VIRT_CPU_ACCOUNTING_GEN
 
 	  If unsure, say N.
 
-endchoice
-
 config IRQ_TIME_ACCOUNTING
 	bool "Fine granularity task level IRQ time accounting"
-	depends on HAVE_IRQ_TIME_ACCOUNTING && !VIRT_CPU_ACCOUNTING_NATIVE
+	depends on HAVE_IRQ_TIME_ACCOUNTING && !NO_HZ_FULL
 	help
 	  Select this option to enable fine granularity task irq time
 	  accounting. This is done by reading a timestamp on each
@@ -409,6 +407,8 @@ config IRQ_TIME_ACCOUNTING
 	  small performance impact.
 
 	  If in doubt, say N here.
+
+endchoice
 
 config SCHED_WALT
         bool "Support window based load tracking"
