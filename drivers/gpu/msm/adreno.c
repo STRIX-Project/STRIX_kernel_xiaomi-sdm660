@@ -486,7 +486,9 @@ static irqreturn_t adreno_irq_handler(struct kgsl_device *device)
 		tmp &= ~BIT(i);
 	}
 
+#ifdef CONFIG_DEBUG_KERNEL
 	gpudev->irq_trace(adreno_dev, status);
+#endif
 
 	/*
 	 * Clear ADRENO_INT_RBBM_AHB_ERROR bit after this interrupt has been
@@ -880,10 +882,12 @@ static int adreno_probe(struct platform_device *pdev)
 
 	kgsl_pwrscale_init(&pdev->dev, CONFIG_QCOM_ADRENO_DEFAULT_GOVERNOR);
 
+#ifdef CONFIG_DEBUG_KERNEL
 	/* Initialize coresight for the target */
 	adreno_coresight_init(adreno_dev);
 
 	place_marker("M - DRIVER GPU Ready");
+#endif
 
 out:
 	if (status) {
@@ -936,7 +940,9 @@ static int adreno_remove(struct platform_device *pdev)
 
 	adreno_sysfs_close(adreno_dev);
 
+#ifdef CONFIG_DEBUG_KERNEL
 	adreno_coresight_remove(adreno_dev);
+#endif
 	adreno_profile_close(adreno_dev);
 
 	kgsl_pwrscale_close(device);
@@ -1270,8 +1276,10 @@ static int _adreno_start(struct adreno_device *adreno_dev)
 	/* Start the GPU */
 	gpudev->start(adreno_dev);
 
+#ifdef CONFIG_DEBUG_KERNEL
 	/* Re-initialize the coresight registers if applicable */
 	adreno_coresight_start(adreno_dev);
+#endif
 
 	adreno_irqctrl(adreno_dev, 1);
 
@@ -1404,8 +1412,10 @@ static int adreno_stop(struct kgsl_device *device)
 
 	adreno_ocmem_free(adreno_dev);
 
+#ifdef CONFIG_DEBUG_KERNEL
 	/* Save active coresight registers if applicable */
 	adreno_coresight_stop(adreno_dev);
+#endif
 
 	/* Save physical performance counter values before GPU power down*/
 	adreno_perfcounter_save(adreno_dev);
@@ -2046,8 +2056,10 @@ static int adreno_soft_reset(struct kgsl_device *device)
 	/* Reinitialize the GPU */
 	gpudev->start(adreno_dev);
 
+#ifdef CONFIG_DEBUG_KERNEL
 	/* Re-initialize the coresight registers if applicable */
 	adreno_coresight_start(adreno_dev);
+#endif
 
 	/* Enable IRQ */
 	adreno_irqctrl(adreno_dev, 1);
