@@ -109,3 +109,5 @@ obj-$(CONFIG_PROCESS_RECLAIM)	+= process_reclaim.o
 obj-$(CONFIG_HARDENED_USERCOPY) += usercopy.o
 
 CFLAGS_kmemleak.o += -DCONFIG_DEBUG_FS
+
+obj-$(CONFIG_OOM_SCORE_NOTIFIER) += oom_score_notifier.o
