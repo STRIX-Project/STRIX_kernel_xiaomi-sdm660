@@ -12,7 +12,7 @@
 #include <linux/notifier.h>
 #include <linux/init.h>
 #include <linux/cpu.h>
-#include <linux/cputime.h>
+#include <asm/cputime.h>
 #include <asm/nmi.h>
 #include <asm/smp.h>
 #include "entry.h"
@@ -43,7 +43,7 @@ void enabled_wait(void)
 	idle->clock_idle_enter = idle->clock_idle_exit = 0ULL;
 	idle->idle_time += idle_time;
 	idle->idle_count++;
-	account_idle_time(cputime_to_nsecs(idle_time));
+	account_idle_time(idle_time);
 	write_seqcount_end(&idle->seqcount);
 }
 NOKPROBE_SYMBOL(enabled_wait);

@@ -135,15 +135,13 @@ static int do_account_vtime(struct task_struct *tsk, int hardirq_offset)
 		user_scaled = (user_scaled * mult) / div;
 		system_scaled = (system_scaled * mult) / div;
 	}
-	account_user_time(tsk, user);
-	tsk->utimescaled += user_scaled;
-	account_system_time(tsk, hardirq_offset, system);
-	tsk->stimescaled += system_scaled;
+	account_user_time(tsk, user, user_scaled);
+	account_system_time(tsk, hardirq_offset, system, system_scaled);
 
 	steal = S390_lowcore.steal_timer;
 	if ((s64) steal > 0) {
 		S390_lowcore.steal_timer = 0;
-		account_steal_time(cputime_to_nsecs(steal));
+		account_steal_time(steal);
 	}
 
 	return virt_timer_forward(user + system);
@@ -167,7 +165,7 @@ void vtime_task_switch(struct task_struct *prev)
  * accounting system time in order to correctly compute
  * the stolen time accounting.
  */
-void vtime_flush(struct task_struct *tsk)
+void vtime_account_user(struct task_struct *tsk)
 {
 	if (do_account_vtime(tsk, HARDIRQ_OFFSET))
 		virt_timer_expire();
@@ -202,8 +200,7 @@ void vtime_account_irq_enter(struct task_struct *tsk)
 
 		system_scaled = (system_scaled * mult) / div;
 	}
-	account_system_time(tsk, 0, system);
-	tsk->stimescaled += system_scaled;
+	account_system_time(tsk, 0, system, system_scaled);
 
 	virt_timer_forward(system);
 }

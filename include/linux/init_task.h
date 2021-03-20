@@ -152,9 +152,9 @@ extern struct task_group root_task_group;
 
 #ifdef CONFIG_VIRT_CPU_ACCOUNTING_GEN
 # define INIT_VTIME(tsk)						\
-	.vtime.seqcount = SEQCNT_ZERO(tsk.vtime.seqcount),		\
-	.vtime.starttime = 0,						\
-	.vtime.state = VTIME_SYS,
+	.vtime_seqlock = __SEQLOCK_UNLOCKED(tsk.vtime_seqlock),	\
+	.vtime_snap = 0,				\
+	.vtime_snap_whence = VTIME_SYS,
 #else
 # define INIT_VTIME(tsk)
 #endif

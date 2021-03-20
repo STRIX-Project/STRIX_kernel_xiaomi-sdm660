@@ -1907,7 +1907,7 @@ static void gpumem_free_func(struct kgsl_device *device,
 	/* Free the memory for all event types */
 	trace_kgsl_mem_timestamp_free(device, entry, KGSL_CONTEXT_ID(context),
 		timestamp, 0);
-	kgsl_memfree_add(entry->priv->pid,
+	kgsl_memfree_add(pid_nr(entry->priv->pid),
 			entry->memdesc.pagetable ?
 				entry->memdesc.pagetable->name : 0,
 			entry->memdesc.gpuaddr, entry->memdesc.size,
@@ -2007,7 +2007,7 @@ static void gpuobj_free_fence_func(void *priv)
 	struct kgsl_mem_entry *entry = priv;
 
 	trace_kgsl_mem_free(entry);
-	kgsl_memfree_add(entry->priv->pid,
+	kgsl_memfree_add(pid_nr(entry->priv->pid),
 			entry->memdesc.pagetable ?
 				entry->memdesc.pagetable->name : 0,
 			entry->memdesc.gpuaddr, entry->memdesc.size,
@@ -5094,18 +5094,6 @@ static int __init kgsl_core_init(void)
 
 	kgsl_driver.mem_workqueue = alloc_workqueue("kgsl-mementry",
 		WQ_UNBOUND | WQ_MEM_RECLAIM, 0);
-
-	init_kthread_worker(&kgsl_driver.worker);
-
-	kgsl_driver.worker_thread = kthread_run_perf_critical(cpu_perf_mask, kthread_worker_fn,
-		&kgsl_driver.worker, "kgsl_worker_thread");
-
-	if (IS_ERR(kgsl_driver.worker_thread)) {
-		pr_err("unable to start kgsl thread\n");
-		goto err;
-	}
-
-	sched_setscheduler(kgsl_driver.worker_thread, SCHED_FIFO, &param);
 
 	init_kthread_worker(&kgsl_driver.worker);
 
