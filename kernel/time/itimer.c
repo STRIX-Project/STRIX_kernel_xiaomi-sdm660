@@ -58,10 +58,10 @@ static void get_cpu_itimer(struct task_struct *tsk, unsigned int clock_id,
 
 		thread_group_cputimer(tsk, &cputime);
 		if (clock_id == CPUCLOCK_PROF)
-			t = nsecs_to_cputime(cputime.utime + cputime.stime);
+			t = cputime.utime + cputime.stime;
 		else
 			/* CPUCLOCK_VIRT */
-			t = nsecs_to_cputime(cputime.utime);
+			t = cputime.utime;
 
 		if (cval < t)
 			/* about to fire */

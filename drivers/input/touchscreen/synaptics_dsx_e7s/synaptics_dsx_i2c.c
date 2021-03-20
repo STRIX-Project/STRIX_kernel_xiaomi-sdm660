@@ -595,6 +595,7 @@ static struct i2c_driver synaptics_rmi4_i2c_driver = {
 		.name = I2C_DRIVER_NAME,
 		.owner = THIS_MODULE,
 		.of_match_table = synaptics_rmi4_of_match_table,
+		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
 	},
 	.probe = synaptics_rmi4_i2c_probe,
 	.remove = synaptics_rmi4_i2c_remove,
