@@ -59,6 +59,7 @@
 
 		CPU_COST_0: core-cost0 {
 			busy-cost-data = <
+				633600    51
 				1113600   88
 				1536000  162
 				1612800  181
@@ -79,6 +80,7 @@
 		};
 		CLUSTER_COST_0: cluster-cost0 {
 			busy-cost-data = <
+				633600   3
 				1113600 13
 				1536000 32
 				1612800 39
@@ -103,6 +105,7 @@
 /* Efficient freq based on result from freqbench */
 &msm_cpufreq {
 	qcom,cpufreq-table-0 =
+		<  633600 >,
 		< 1113600 >,
 		< 1536000 >,
 		< 1612800 >;
