@@ -23,7 +23,8 @@
 
 &soc {
 	ramoops {
-		compatible = "ramoops";
+		compatible = "removed-dma-pool", "ramoops";
+		no-map;
 		memory-region = <&ramoops_mem>;
 		console-size = <0x0 0x200000>;
 		pmsg-size = <0x0 0x200000>;
