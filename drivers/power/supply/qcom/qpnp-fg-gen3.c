@@ -4103,6 +4103,7 @@ static int fg_psy_get_property(struct power_supply *psy,
 	return 0;
 }
 
+#ifndef CONFIG_MACH_XIAOMI_WHYRED
 #define BCL_RESET_RETRY_COUNT 4
 static int fg_bcl_reset(struct fg_chip *chip)
 {
@@ -4196,6 +4197,7 @@ unlock:
 	else
 		return rc;
 }
+#endif
 
 static int fg_psy_set_property(struct power_supply *psy,
 				  enum power_supply_property psp,
@@ -4285,6 +4287,7 @@ static int fg_psy_set_property(struct power_supply *psy,
 			return rc;
 		}
 		break;
+#ifndef CONFIG_MACH_XIAOMI_WHYRED
 	case POWER_SUPPLY_PROP_FG_RESET_CLOCK:
 		rc = fg_bcl_reset(chip);
 		if (rc < 0) {
@@ -4292,6 +4295,7 @@ static int fg_psy_set_property(struct power_supply *psy,
 			return rc;
 		}
 		break;
+#endif
 	default:
 		break;
 	}
