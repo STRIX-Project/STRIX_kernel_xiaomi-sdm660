@@ -62,7 +62,7 @@ extern bool synaptics_gesture_func_on;
 
 DEFINE_LED_TRIGGER(bl_led_trigger);
 
-static unsigned int cur_refresh_rate = 60;
+static unsigned int cur_refresh_rate = 65;
 
 void mdss_dsi_panel_pwm_cfg(struct mdss_dsi_ctrl_pdata *ctrl)
 {
