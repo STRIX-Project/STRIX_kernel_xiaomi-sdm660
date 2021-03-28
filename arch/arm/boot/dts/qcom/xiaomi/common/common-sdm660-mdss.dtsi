@@ -124,7 +124,7 @@
                26 21 09 0b 06 03 04 a0
                26 20 0a 0b 06 03 04 a0];
 	qcom,mdss-dsi-min-refresh-rate = <48>;
-	qcom,mdss-dsi-max-refresh-rate = <60>;
+	qcom,mdss-dsi-max-refresh-rate = <65>;
 };
 
 &dsi_nt36672a_e7t_shenchao_fhdplus_video {
