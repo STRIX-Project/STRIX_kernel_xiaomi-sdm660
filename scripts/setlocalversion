@@ -72,7 +72,7 @@ scm_version()
 
 			# Avoid asking git for tag as it could be extremely slow.
 			# We print -g{commitish}.
-			printf '%s%s' -g $head
+			printf '%s%s' "/" $head
 		fi
 
 		# Is this git on svn?
