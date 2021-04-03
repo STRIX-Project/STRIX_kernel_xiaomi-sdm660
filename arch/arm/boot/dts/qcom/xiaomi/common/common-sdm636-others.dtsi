@@ -59,10 +59,8 @@
 
 		CPU_COST_0: core-cost0 {
 			busy-cost-data = <
-				 633600   51
-				 902400   74
+				633600    51
 				1113600   88
-				1401600  148
 				1536000  162
 				1612800  181
 			>;
@@ -74,7 +72,6 @@
 			busy-cost-data = <
 				1113600  292
 				1401600  368
-				1747200  562
 				1804800  559
 			>;
 			idle-cost-data = <
@@ -83,10 +80,8 @@
 		};
 		CLUSTER_COST_0: cluster-cost0 {
 			busy-cost-data = <
-				 633600  3
-				 902400  8
+				633600   3
 				1113600 13
-				1401600 23
 				1536000 32
 				1612800 39
 			>;
@@ -98,7 +93,6 @@
 			busy-cost-data = <
 				1113600  34
 				1401600  63
-				1747200 111
 				1804800 178
 			>;
 			idle-cost-data = <
@@ -106,4 +100,18 @@
 			>;
 		};
 	};
+};
+
+/* Efficient freq based on result from freqbench */
+&msm_cpufreq {
+	qcom,cpufreq-table-0 =
+		<  633600 >,
+		< 1113600 >,
+		< 1536000 >,
+		< 1612800 >;
+
+	qcom,cpufreq-table-4 =
+		< 1113600 >,
+		< 1401600 >,
+		< 1804800 >;
 };

@@ -1,5 +1,4 @@
 /* Copyright (c) 2014-2018, The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -19,8 +18,8 @@
 #include <linux/ipc_router.h>
 #include "smp2p_private.h"
 
-int PROC_AWAKE_ID = 12; /* 12th bit */
-int slst_gpio_base_id;
+#define PROC_AWAKE_ID 12 /* 12th bit */
+static int slst_gpio_base_id;
 
 /**
  * sleepstate_pm_notifier() - PM notifier callback function.
@@ -36,11 +35,13 @@ static int sleepstate_pm_notifier(struct notifier_block *nb,
 {
 	switch (event) {
 	case PM_SUSPEND_PREPARE:
+		gpio_set_value(slst_gpio_base_id + PROC_AWAKE_ID, 0);
 		usleep_range(10000, 10500); /* Tuned based on SMP2P latencies */
 		msm_ipc_router_set_ws_allowed(true);
 		break;
 
 	case PM_POST_SUSPEND:
+		gpio_set_value(slst_gpio_base_id + PROC_AWAKE_ID, 1);
 		msm_ipc_router_set_ws_allowed(false);
 		break;
 	}
