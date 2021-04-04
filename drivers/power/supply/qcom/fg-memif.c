@@ -778,7 +778,12 @@ int fg_dma_mem_req(struct fg_chip *chip, bool request)
 				break;
 			msleep(20);
 		}
-		if ((retry_count < 0) && !(val & MEM_GNT_BIT)) {
+#ifdef CONFIG_MACH_XIAOMI_TULIP
+		if (!retry_count && !(val & MEM_GNT_BIT))
+#else 
+		if ((retry_count < 0) && !(val & MEM_GNT_BIT))
+#endif
+		{
 			pr_err("failed to get memory access\n");
 			rc = -ETIMEDOUT;
 			goto release_mem;
