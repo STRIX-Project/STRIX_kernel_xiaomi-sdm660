@@ -20,8 +20,6 @@
 	qcom,fv-max-uv  = <4408000>;
 	qcom,thermal-mitigation
 			= <2500000 2300000 2000000 1500000 1000000 400000 200000>;
-	qcom,thermal-mitigation-china
-			= <2500000 2300000 2000000 1500000 1000000 400000 200000>;
 };
 
 &pm660_haptics {
