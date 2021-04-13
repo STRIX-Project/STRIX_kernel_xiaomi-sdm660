@@ -14,34 +14,42 @@
 / {
 	cpus {
 		CPU0: cpu@0 {
+			efficiency = <636>;
 			clock-frequency = <1843200000>;
 		};
 
 		CPU1: cpu@1 {
+			efficiency = <636>;
 			clock-frequency = <1843200000>;
 		};
 
 		CPU2: cpu@2 {
+			efficiency = <636>;
 			clock-frequency = <1843200000>;
 		};
 
 		CPU3: cpu@3 {
+			efficiency = <636>;
 			clock-frequency = <1843200000>;
 		};
 
 		CPU4: cpu@100 {
+			efficiency = <1024>;
 			clock-frequency = <2208000000>;
 		};
 
 		CPU5: cpu@101 {
+			efficiency = <1024>;
 			clock-frequency = <2208000000>;
 		};
 
 		CPU6: cpu@102 {
+			efficiency = <1024>;
 			clock-frequency = <2208000000>;
 		};
 
 		CPU7: cpu@103 {
+			efficiency = <1024>;
 			clock-frequency = <2208000000>;
 		};
 	};
@@ -51,13 +59,13 @@
 
 		CPU_COST_0: core-cost0 {
 			busy-cost-data = <
-				 633600 23
-				 902400 139
-				1113600 259
-				1401600 482
-				1536000 690
-				1747200 870
-				1843200 1102
+				 633600  48
+				 902400  72
+				1113600  79
+				1401600 125
+				1536000 134
+				1747200 179
+				1843200 228
 			>;
 			idle-cost-data = <
 				20 16 12 8
@@ -65,12 +73,12 @@
 		};
 		CPU_COST_1: core-cost1 {
 			busy-cost-data = <
-				1113600 749
-				1401600 1443
-				1747200 2576
-				1958400 4153
-				2150400 5941
-				2208000 6688
+				1113600 220
+				1401600 317
+				1747200 474
+				1958400 578
+				2150400 694
+				2208000 736
 			>;
 			idle-cost-data = <
 				100 80 60 40
