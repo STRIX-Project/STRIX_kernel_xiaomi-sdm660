@@ -21,7 +21,7 @@
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 
 / {
-	model = "Qualcomm Technologies, Inc. SDM 660 PM660 + PM660L MTP F7A overlay";
+	model = "Qualcomm Technologies, Inc. SDM 660 PM660 + PM660L MTP, Lavender overlay";
 	compatible = "qcom,sdm660-mtp", "qcom,sdm660", "qcom,mtp";
 	qcom,board-id = <0x20008 0>;
 	qcom,pmic-id = <0x0001001b 0x0101011a 0x0 0x0>,
