@@ -1492,7 +1492,7 @@ config CC_OPTIMIZE_FOR_SIZE
 
 endchoice
 
-config LTO
+config LTO_GCC
 	bool "Enable Link Time Optimization"
 	select THIN_ARCHIVES
 
