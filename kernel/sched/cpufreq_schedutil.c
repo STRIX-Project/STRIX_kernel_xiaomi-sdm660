@@ -131,8 +131,10 @@ static void sugov_track_cycles(struct sugov_policy *sg_policy,
 {
 	u64 delta_ns, cycles;
 
+#ifdef CONFIG_SCHED_WALT
 	if (unlikely(!sysctl_sched_use_walt_cpu_util))
 		return;
+#endif
 
 	/* Track cycles in current window */
 	delta_ns = upto - sg_policy->last_cyc_update_time;
