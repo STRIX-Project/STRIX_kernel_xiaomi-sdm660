@@ -194,9 +194,7 @@
 #define FG_RR_ADC_STS_CHANNEL_STS		0x2
 
 #define FG_RR_CONV_CONTINUOUS_TIME_MIN_MS       50
-#ifndef CONFIG_MACH_XIAOMI_TULIP
 #define FG_RR_CONV_CONT_CBK_TIME_MIN_MS	10
-#endif
 #define FG_RR_CONV_MAX_RETRY_CNT		50
 #define FG_RR_TP_REV_VERSION1		21
 #define FG_RR_TP_REV_VERSION2		29
@@ -810,11 +808,9 @@ static int rradc_check_status_ready_with_retry(struct rradc_chip *chip,
 			break;
 		}
 
-#ifndef CONFIG_MACH_XIAOMI_TULIP
 		if ((chip->conv_cbk) && (prop->channel == RR_ADC_USBIN_V))
 			msleep(FG_RR_CONV_CONT_CBK_TIME_MIN_MS);
 		else
-#endif
 			msleep(FG_RR_CONV_CONTINUOUS_TIME_MIN_MS);
 
 		retry_cnt++;
@@ -1165,13 +1161,11 @@ static void psy_notify_work(struct work_struct *work)
 					if (rc < 0)
 						pr_err("Couldn't reset FG clock rc=%d\n",
 								rc);
-#ifndef CONFIG_MACH_XIAOMI_TULIP
 					prop = &chip->chan_props[RR_ADC_BATT_ID];
 					rc = rradc_do_conversion(chip, prop,
 							&adc_code);
 					if (rc == -ENODATA)
 						pr_err("RRADC read failed after reset");
-#endif
 				} else {
 					pr_err("Error obtaining bms power supply");
 				}
