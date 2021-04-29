@@ -4168,11 +4168,7 @@ static int fg_bcl_reset(struct fg_chip *chip)
 			if (rc < 0) {
 				pr_err("Error in unlocking memory, rc=%d\n",
 						rc);
-#ifdef CONFIG_MACH_XIAOMI_TULIP
-				return rc;
-#else
 				goto unlock;
-#endif
 			}
 			success = false;
 			pr_err_ratelimited("PEEK_MUX1 not set retrying...\n");
