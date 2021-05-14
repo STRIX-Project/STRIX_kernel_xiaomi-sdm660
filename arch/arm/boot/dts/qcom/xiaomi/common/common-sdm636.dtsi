@@ -35,7 +35,6 @@
 	/delete-property/ qcom,fde-key-size;
 };
 
-
 /* sdm660-common.dtsi tulip/whyred specific diff */
 &usb3 {
 	extcon = <&pm660_charger>;
@@ -71,7 +70,6 @@
 		compatible = "usb-nop-xceiv";
 	};
 };
-
 
 /* msm-pm660.dtsi tulip/whyred specific diff */
 &pm660_charger {

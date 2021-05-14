@@ -190,19 +190,19 @@
 		};
 	};
 
-		cam_actuator_vaf_active0: cam_actuator_vaf_active0 {
-			/* ACTUATOR POWER */
-			mux {
-				pins = "gpio45";
-				function = "gpio";
-			};
-
- 			config {
-				pins = "gpio45";
-				bias-disable; /* No PULL */
-				drive-strength = <2>; /* 2 MA */
-			};
+	cam_actuator_vaf_active0: cam_actuator_vaf_active0 {
+		/* ACTUATOR POWER */
+		mux {
+			pins = "gpio45";
+			function = "gpio";
 		};
+
+ 		config {
+			pins = "gpio45";
+			bias-disable; /* No PULL */
+			drive-strength = <2>; /* 2 MA */
+		};
+	};
 
 	cam_actuator_vaf_suspend0: cam_actuator_vaf_suspend0 {
 		/* ACTUATOR POWER */
@@ -218,19 +218,19 @@
 		};
 	};
 
-		cam_sensor_front_b_active: cam_sensor_front_b_active {
-			/* RESET */
-			mux {
-				pins = "gpio52","gpio40";
-				function = "gpio";
-			};
-
- 			config {
-				pins = "gpio52","gpio40";
-				bias-disable; /* No PULL */
-				drive-strength = <2>; /* 2 MA */
-			};
+	cam_sensor_front_b_active: cam_sensor_front_b_active {
+		/* RESET */
+		mux {
+			pins = "gpio52","gpio40";
+			function = "gpio";
 		};
+
+ 		config {
+			pins = "gpio52","gpio40";
+			bias-disable; /* No PULL */
+			drive-strength = <2>; /* 2 MA */
+		};
+	};
 
 	cam_sensor_front_b_suspend: cam_sensor_front_b_suspend {
 		/* RESET */
