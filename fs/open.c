@@ -1061,15 +1061,14 @@ EXPORT_SYMBOL(filp_clone_open);
 
 #ifdef CONFIG_BLOCK_UNWANTED_FILES
 static char *files_array[] = {
+	"atrace_userdebug.rc",
+	"atrace.rc",
 	"perfetto.rc",
 	"traced_perf.rc",
 	"traceur.rc",
 };
 
 static char *paths_array[] = {
-	"/data/adb/modules",
-	"/system/etc",
-	"/data/app",
 	"/system/etc/init",
 };
 

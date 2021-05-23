@@ -48,6 +48,8 @@ struct sugov_policy {
 	s64 min_rate_limit_ns;
 	s64 up_rate_delay_ns;
 	s64 down_rate_delay_ns;
+	u64 curr_cycles;
+	u64 last_cyc_update_time;
 	unsigned int next_freq;
 	unsigned int cached_raw_freq;
 
@@ -120,6 +122,27 @@ static bool sugov_up_down_rate_limit(struct sugov_policy *sg_policy, u64 time,
 			return true;
 
 	return false;
+}
+
+#define KHZ 1000
+static void sugov_track_cycles(struct sugov_policy *sg_policy,
+				unsigned int prev_freq,
+				u64 upto)
+{
+	u64 delta_ns, cycles;
+
+#ifdef CONFIG_SCHED_WALT
+	if (unlikely(!sysctl_sched_use_walt_cpu_util))
+		return;
+#endif
+
+	/* Track cycles in current window */
+	delta_ns = upto - sg_policy->last_cyc_update_time;
+	delta_ns *= prev_freq;
+	do_div(delta_ns, (NSEC_PER_SEC / KHZ));
+	cycles = delta_ns;
+	sg_policy->curr_cycles += cycles;
+	sg_policy->last_cyc_update_time = upto;
 }
 
 static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
@@ -892,11 +915,25 @@ static int sugov_stop(struct cpufreq_policy *policy)
 static int sugov_limits(struct cpufreq_policy *policy)
 {
 	struct sugov_policy *sg_policy = policy->governor_data;
+	unsigned long flags;
+	unsigned int ret;
+	int cpu;
 
 	if (!policy->fast_switch_enabled) {
 		mutex_lock(&sg_policy->work_lock);
 		cpufreq_policy_apply_limits(policy);
 		mutex_unlock(&sg_policy->work_lock);
+	} else {
+		raw_spin_lock_irqsave(&sg_policy->update_lock, flags);
+		sugov_track_cycles(sg_policy, sg_policy->policy->cur,
+				   ktime_get_ns());
+		ret = cpufreq_policy_apply_limits_fast(policy);
+		if (ret && policy->cur != ret) {
+			policy->cur = ret;
+			for_each_cpu(cpu, policy->cpus)
+				trace_cpu_frequency(ret, cpu);
+		}
+		raw_spin_unlock_irqrestore(&sg_policy->update_lock, flags);
 	}
 
 	sg_policy->need_freq_update = true;
