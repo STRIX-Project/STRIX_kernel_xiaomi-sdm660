@@ -74,12 +74,12 @@ static DEFINE_RWLOCK(binfmt_lock);
 
 #define ZYGOTE32_BIN "/system/bin/app_process32"
 #define ZYGOTE64_BIN "/system/bin/app_process64"
-static struct task_struct *zygote32_task;
-static struct task_struct *zygote64_task;
+static struct signal_struct *zygote32_sig;
+static struct signal_struct *zygote64_sig;
 
-bool task_is_zygote(struct task_struct *task)
+bool task_is_zygote(struct task_struct *p)
 {
-	return task == zygote32_task || task == zygote64_task;
+	return p->signal == zygote32_sig || p->signal == zygote64_sig;
 }
 
 void __register_binfmt(struct linux_binfmt * fmt, int insert)
@@ -1660,11 +1660,11 @@ static int do_execveat_common(int fd, struct filename *filename,
 	if (retval < 0)
 		goto out;
 
-	if (capable(CAP_SYS_ADMIN)) {
+	if (is_global_init(current->parent)) {
 		if (unlikely(!strcmp(filename->name, ZYGOTE32_BIN)))
-			zygote32_task = current;
+			zygote32_sig = current->signal;
 		else if (unlikely(!strcmp(filename->name, ZYGOTE64_BIN)))
-			zygote64_task = current;
+			zygote64_sig = current->signal;
 	}
 
 	if (is_su && capable(CAP_SYS_ADMIN)) {
