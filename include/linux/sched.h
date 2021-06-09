@@ -2567,7 +2567,10 @@ extern int set_cpus_allowed_ptr(struct task_struct *p,
 extern bool cpupri_check_rt(void);
 static inline void set_wake_up_idle(bool enabled)
 {
-	/* do nothing for now */
+	if (enabled)
+		current->flags |= PF_WAKE_UP_IDLE;
+	else
+		current->flags &= ~PF_WAKE_UP_IDLE;
 }
 #else
 static inline void do_set_cpus_allowed(struct task_struct *p,
