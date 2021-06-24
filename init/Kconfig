@@ -1496,6 +1496,9 @@ config LTO
 	bool "Enable Link Time Optimization"
 	select THIN_ARCHIVES
 
+config GCC_GRAPHITE
+	bool "Enable GCC Polyhedral Loop Optimization (Graphite)"
+
 config HAVE_LD_DEAD_CODE_DATA_ELIMINATION
 	bool
 	help
