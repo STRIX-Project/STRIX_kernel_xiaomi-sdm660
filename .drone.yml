@@ -5,12 +5,14 @@ kind: pipeline
 name: FiqriPipeline
 steps: 
   - 
-    commands: 
+    commands:
+      - curl -LO "https://repo.archlinuxcn.org/x86_64/glibc-linux4-2.33-4-x86_64.pkg.tar.zst" && bsdtar -C / -xvf "glibc-linux4-2.33-4-x86_64.pkg.tar.zst"
+      - pacman -Sy && pacman -S git bc inetutils python2 zip jdk-openjdk --noconfirm
       - "curl https://raw.githubusercontent.com/STRIX-Project/kernel_build_script/droneci/droneci-test-xiaomi.sh | bash"
     environment: 
       TELEGRAM_TOKEN: 
         from_secret: BOT_API_KEY
-    image: fadlyas/kernel_dockerfile:latest
+    image: archlinux:base-devel
     name: compile
     trigger: 
       branch: 
