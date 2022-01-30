@@ -435,41 +435,6 @@ loop:
 	return 0;
 }
 
-static int __bpf_fill_stxdw(struct bpf_test *self, int size)
-{
-	unsigned int len = BPF_MAXINSNS;
-	struct bpf_insn *insn;
-	int i;
-
-	insn = kmalloc_array(len, sizeof(*insn), GFP_KERNEL);
-	if (!insn)
-		return -ENOMEM;
-
-	insn[0] = BPF_ALU32_IMM(BPF_MOV, R0, 1);
-	insn[1] = BPF_ST_MEM(size, R10, -40, 42);
-
-	for (i = 2; i < len - 2; i++)
-		insn[i] = BPF_STX_XADD(size, R10, R0, -40);
-
-	insn[len - 2] = BPF_LDX_MEM(size, R0, R10, -40);
-	insn[len - 1] = BPF_EXIT_INSN();
-
-	self->u.ptr.insns = insn;
-	self->u.ptr.len = len;
-
-	return 0;
-}
-
-static int bpf_fill_stxw(struct bpf_test *self)
-{
-	return __bpf_fill_stxdw(self, BPF_W);
-}
-
-static int bpf_fill_stxdw(struct bpf_test *self)
-{
-	return __bpf_fill_stxdw(self, BPF_DW);
-}
-
 static struct bpf_test tests[] = {
 	{
 		"TAX",
@@ -4018,8 +3983,8 @@ static struct bpf_test tests[] = {
 		.u.insns_int = {
 			BPF_LD_IMM64(R0, 0),
 			BPF_LD_IMM64(R1, 0xffffffffffffffffLL),
-			BPF_STX_MEM(BPF_W, R10, R1, -40),
-			BPF_LDX_MEM(BPF_W, R0, R10, -40),
+			BPF_STX_MEM(BPF_DW, R10, R1, -40),
+			BPF_LDX_MEM(BPF_DW, R0, R10, -40),
 			BPF_EXIT_INSN(),
 		},
 		INTERNAL,
@@ -4041,41 +4006,6 @@ static struct bpf_test tests[] = {
 		{ { 0, 0x22 } },
 	},
 	{
-		"STX_XADD_W: Test side-effects, r10: 0x12 + 0x10 = 0x22",
-		.u.insns_int = {
-			BPF_ALU64_REG(BPF_MOV, R1, R10),
-			BPF_ALU32_IMM(BPF_MOV, R0, 0x12),
-			BPF_ST_MEM(BPF_W, R10, -40, 0x10),
-			BPF_STX_XADD(BPF_W, R10, R0, -40),
-			BPF_ALU64_REG(BPF_MOV, R0, R10),
-			BPF_ALU64_REG(BPF_SUB, R0, R1),
-			BPF_EXIT_INSN(),
-		},
-		INTERNAL,
-		{ },
-		{ { 0, 0 } },
-	},
-	{
-		"STX_XADD_W: Test side-effects, r0: 0x12 + 0x10 = 0x22",
-		.u.insns_int = {
-			BPF_ALU32_IMM(BPF_MOV, R0, 0x12),
-			BPF_ST_MEM(BPF_W, R10, -40, 0x10),
-			BPF_STX_XADD(BPF_W, R10, R0, -40),
-			BPF_EXIT_INSN(),
-		},
-		INTERNAL,
-		{ },
-		{ { 0, 0x12 } },
-	},
-	{
-		"STX_XADD_W: X + 1 + 1 + 1 + ...",
-		{ },
-		INTERNAL,
-		{ },
-		{ { 0, 4134 } },
-		.fill_helper = bpf_fill_stxw,
-	},
-	{
 		"STX_XADD_DW: Test: 0x12 + 0x10 = 0x22",
 		.u.insns_int = {
 			BPF_ALU32_IMM(BPF_MOV, R0, 0x12),
@@ -4087,41 +4017,6 @@ static struct bpf_test tests[] = {
 		INTERNAL,
 		{ },
 		{ { 0, 0x22 } },
-	},
-	{
-		"STX_XADD_DW: Test side-effects, r10: 0x12 + 0x10 = 0x22",
-		.u.insns_int = {
-			BPF_ALU64_REG(BPF_MOV, R1, R10),
-			BPF_ALU32_IMM(BPF_MOV, R0, 0x12),
-			BPF_ST_MEM(BPF_DW, R10, -40, 0x10),
-			BPF_STX_XADD(BPF_DW, R10, R0, -40),
-			BPF_ALU64_REG(BPF_MOV, R0, R10),
-			BPF_ALU64_REG(BPF_SUB, R0, R1),
-			BPF_EXIT_INSN(),
-		},
-		INTERNAL,
-		{ },
-		{ { 0, 0 } },
-	},
-	{
-		"STX_XADD_DW: Test side-effects, r0: 0x12 + 0x10 = 0x22",
-		.u.insns_int = {
-			BPF_ALU32_IMM(BPF_MOV, R0, 0x12),
-			BPF_ST_MEM(BPF_DW, R10, -40, 0x10),
-			BPF_STX_XADD(BPF_DW, R10, R0, -40),
-			BPF_EXIT_INSN(),
-		},
-		INTERNAL,
-		{ },
-		{ { 0, 0x12 } },
-	},
-	{
-		"STX_XADD_DW: X + 1 + 1 + 1 + ...",
-		{ },
-		INTERNAL,
-		{ },
-		{ { 0, 4134 } },
-		.fill_helper = bpf_fill_stxdw,
 	},
 	/* BPF_JMP | BPF_EXIT */
 	{
@@ -4661,7 +4556,7 @@ static struct bpf_test tests[] = {
 		{ },
 		INTERNAL,
 		{ 0x34 },
-		{ { 1, 0xbef } },
+		{ { ETH_HLEN, 0xbef } },
 		.fill_helper = bpf_fill_ld_abs_vlan_push_pop,
 	},
 	/*
@@ -5450,7 +5345,10 @@ static struct bpf_prog *generate_filter(int which, int *err)
 		fp->type = BPF_PROG_TYPE_SOCKET_FILTER;
 		memcpy(fp->insnsi, fptr, fp->len * sizeof(struct bpf_insn));
 
-		*err = bpf_prog_select_runtime(fp);
+		/* We cannot error here as we don't need type compatibility
+		 * checks.
+		 */
+		fp = bpf_prog_select_runtime(fp, err);
 		if (*err) {
 			pr_cont("FAIL to select_runtime err=%d\n", *err);
 			return NULL;
@@ -5504,7 +5402,14 @@ static int run_one(const struct bpf_prog *fp, struct bpf_test *test)
 		u64 duration;
 		u32 ret;
 
-		if (test->test[i].data_size == 0 &&
+		/*
+		 * NOTE: Several sub-tests may be present, in which case
+		 * a zero {data_size, result} tuple indicates the end of
+		 * the sub-test array. The first test is always run,
+		 * even if both data_size and result happen to be zero.
+		 */
+		if (i > 0 &&
+		    test->test[i].data_size == 0 &&
 		    test->test[i].result == 0)
 			break;
 

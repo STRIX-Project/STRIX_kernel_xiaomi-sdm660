@@ -1,6 +1,6 @@
 VERSION = 4
 PATCHLEVEL = 4
-SUBLEVEL = 274
+SUBLEVEL = 301
 EXTRAVERSION =
 NAME = Blurry Fish Butt
 
@@ -644,6 +644,10 @@ export DISABLE_LTO LDFINAL
 else
 LDFINAL       := $(LD)
 export LDFINAL
+endif
+
+ifdef CONFIG_GCC_GRAPHITE
+KBUILD_CFLAGS	+= -fgraphite-identity -floop-nest-optimize
 endif
 
 # The arch Makefile can set ARCH_{CPP,A,C}FLAGS to override the default
